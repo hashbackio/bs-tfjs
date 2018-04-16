@@ -60,51 +60,59 @@ module TypedArray = {
     };
 };
 
+type tensorLike =
+  | Typed(TypedArray.t)
+  | Int(int)
+  | Float(float)
+  | Bool(bool)
+  | Int1D(array(int))
+  | Float1D(array(float))
+  | Bool1D(array(bool))
+  | Int2D(array(array(int)))
+  | Float2D(array(array(float)))
+  | Bool2D(array(array(bool)))
+  | Int3D(array(array(array(int))))
+  | Float3D(array(array(array(float))))
+  | Bool3D(array(array(array(bool))))
+  | Int4D(array(array(array(array(int)))))
+  | Float4D(array(array(array(array(float)))))
+  | Bool4D(array(array(array(array(bool)))));
+
+type tensorLike1D =
+  | Typed(TypedArray.t)
+  | Int(array(int))
+  | Float(array(float))
+  | Bool(array(bool));
+
+type tensorLike2D =
+  | Typed(TypedArray.t)
+  | FlatInt(array(int))
+  | FlatFloat(array(float))
+  | FlatBool(array(bool))
+  | Int(array(array(int)))
+  | Float(array(array(float)))
+  | Bool(array(array(bool)));
+
+type tensorLike3D =
+  | Typed(TypedArray.t)
+  | FlatInt(array(int))
+  | FlatFloat(array(float))
+  | FlatBool(array(bool))
+  | Int(array(array(array(int))))
+  | Float(array(array(array(float))))
+  | Bool(array(array(array(bool))));
+
+type tensorLike4D =
+  | Typed(TypedArray.t)
+  | FlatInt(array(int))
+  | FlatFloat(array(float))
+  | FlatBool(array(bool))
+  | Int(array(array(array(array(int)))))
+  | Float(array(array(array(array(float)))))
+  | Bool(array(array(array(array(bool)))));
+
 type flatVector =
   | Float(array(float))
   | Int(array(int))
   | Bool(array(bool))
   | Typed(TypedArray.t);
-
-module RegularArray = {
-  type t('a) =
-    | OneDimensional(array('a))
-    | TwoDimensional(array(array('a)))
-    | ThreeDimensional(array(array(array('a))))
-    | FourDimensional(array(array(array(array('a)))));
-  external unsafeCastToArray : 'a => Js.Array.t('b) = "%identity";
-  let rec getArrayDimensions = maybeArray =>
-    maybeArray |> Js.Array.isArray ?
-      switch (maybeArray |> unsafeCastToArray |> Belt.Array.get(_, 0)) {
-      | Some(a) => getArrayDimensions(a) + 1
-      | None => 1
-      } :
-      0;
-  let cast = a =>
-    switch (a |> getArrayDimensions) {
-    | 4 => Some(FourDimensional(a |> unsafeCastToArray))
-    | 3 => Some(ThreeDimensional(a |> unsafeCastToArray))
-    | 2 => Some(TwoDimensional(a |> unsafeCastToArray))
-    | 1 => Some(OneDimensional(a |> unsafeCastToArray))
-    | _ => None
-    };
-};
-/* module Convertible = {
-     type t =
-       | Float(float)
-       | Int(int)
-       | RegularFloatArray(RegularArray.t(float))
-       | RegularIntArray(RegularArray.t(int))
-       | TypedArray(TypedArray.t);
-     let cast = a =>
-       switch (a |> Js.Types.classify) {
-       | Js.Types.JSNumber(num) => Some(Float(num))
-       | Js.Types.JSObject(obj) when obj |> Js.Array.isArray =>
-         Some(obj |> Js.Array.from)
-       | Js.Types.JSObject(obj) =>
-         obj
-         |> TypedArray.cast
-         |> Belt.Option.flatMap(_, ta => Some(TypedArray(ta)))
-       | _ => None
-       };
-   }; */
