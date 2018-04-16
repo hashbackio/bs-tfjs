@@ -6,3 +6,4 @@ npm-debug.log
 /node_modules/
 *.bs.js
 yarn-error.log
+.vscode/
