@@ -63,34 +63,52 @@ module TypedArray = {
     | a when a |> isUint8Array => Some(Bool(a |> unsafeCastToUint8Array))
     | _ => None
     };
-  let sendToTfjs = (t, tfjsFn) =>
-    (
-      switch (t) {
-      | Float32(f) => f |> FFI.unsafeCastToFFI
-      | Int32(i) => i |> FFI.unsafeCastToFFI
-      | Bool(b) => b |> FFI.unsafeCastToFFI
-      }
-    )
-    |> tfjsFn;
+  let sendToTfjs = t =>
+    switch (t) {
+    | Float32(f) => f |> FFI.unsafeCastToFFI
+    | Int32(i) => i |> FFI.unsafeCastToFFI
+    | Bool(b) => b |> FFI.unsafeCastToFFI
+    };
 };
 
-type tensorLike =
-  | Typed(TypedArray.t)
-  | Int(int)
-  | Float(float)
-  | Bool(bool)
-  | Int1D(array(int))
-  | Float1D(array(float))
-  | Bool1D(array(bool))
-  | Int2D(array(array(int)))
-  | Float2D(array(array(float)))
-  | Bool2D(array(array(bool)))
-  | Int3D(array(array(array(int))))
-  | Float3D(array(array(array(float))))
-  | Bool3D(array(array(array(bool))))
-  | Int4D(array(array(array(array(int)))))
-  | Float4D(array(array(array(array(float)))))
-  | Bool4D(array(array(array(array(bool)))));
+module TensorLike = {
+  type t =
+    | Typed(TypedArray.t)
+    | Int(int)
+    | Float(float)
+    | Bool(bool)
+    | Int1D(array(int))
+    | Float1D(array(float))
+    | Bool1D(array(bool))
+    | Int2D(array(array(int)))
+    | Float2D(array(array(float)))
+    | Bool2D(array(array(bool)))
+    | Int3D(array(array(array(int))))
+    | Float3D(array(array(array(float))))
+    | Bool3D(array(array(array(bool))))
+    | Int4D(array(array(array(array(int)))))
+    | Float4D(array(array(array(array(float)))))
+    | Bool4D(array(array(array(array(bool)))));
+  let sendToTfjs = tensorLike =>
+    switch (tensorLike) {
+    | Typed(a) => a |> TypedArray.sendToTfjs
+    | Int(i) => i |> FFI.unsafeCastToFFI
+    | Float(f) => f |> FFI.unsafeCastToFFI
+    | Bool(b) => b |> FFI.unsafeCastToFFI
+    | Int1D(i) => i |> FFI.unsafeCastToFFI
+    | Float1D(f) => f |> FFI.unsafeCastToFFI
+    | Bool1D(b) => b |> FFI.unsafeCastToFFI
+    | Int2D(i) => i |> FFI.unsafeCastToFFI
+    | Float2D(f) => f |> FFI.unsafeCastToFFI
+    | Bool2D(b) => b |> FFI.unsafeCastToFFI
+    | Int3D(i) => i |> FFI.unsafeCastToFFI
+    | Float3D(f) => f |> FFI.unsafeCastToFFI
+    | Bool3D(b) => b |> FFI.unsafeCastToFFI
+    | Int4D(i) => i |> FFI.unsafeCastToFFI
+    | Float4D(f) => f |> FFI.unsafeCastToFFI
+    | Bool4D(b) => b |> FFI.unsafeCastToFFI
+    };
+};
 
 module TensorLike1D = {
   type t =
@@ -98,41 +116,77 @@ module TensorLike1D = {
     | Int(array(int))
     | Float(array(float))
     | Bool(array(bool));
-  let sendToTfjs = (t, tfjsFn) =>
+  let sendToTfjs = t =>
     switch (t) {
-    | Typed(ta) => ta |. TypedArray.sendToTfjs(tfjsFn)
-    | Int(i) => i |> FFI.unsafeCastToFFI |> tfjsFn
-    | Float(f) => f |> FFI.unsafeCastToFFI |> tfjsFn
-    | Bool(b) => b |> FFI.unsafeCastToFFI |> tfjsFn
+    | Typed(ta) => ta |> TypedArray.sendToTfjs
+    | Int(i) => i |> FFI.unsafeCastToFFI
+    | Float(f) => f |> FFI.unsafeCastToFFI
+    | Bool(b) => b |> FFI.unsafeCastToFFI
     };
 };
 
-type tensorLike2D =
-  | Typed(TypedArray.t)
-  | FlatInt(array(int))
-  | FlatFloat(array(float))
-  | FlatBool(array(bool))
-  | Int(array(array(int)))
-  | Float(array(array(float)))
-  | Bool(array(array(bool)));
+module TensorLike2D = {
+  type t =
+    | Typed(TypedArray.t)
+    | FlatInt(array(int))
+    | FlatFloat(array(float))
+    | FlatBool(array(bool))
+    | Int(array(array(int)))
+    | Float(array(array(float)))
+    | Bool(array(array(bool)));
+  let sendToTfjs = t =>
+    switch (t) {
+    | Typed(t) => t |> TypedArray.sendToTfjs
+    | FlatInt(a) => a |> FFI.unsafeCastToFFI
+    | FlatFloat(a) => a |> FFI.unsafeCastToFFI
+    | FlatBool(a) => a |> FFI.unsafeCastToFFI
+    | Int(a) => a |> FFI.unsafeCastToFFI
+    | Float(a) => a |> FFI.unsafeCastToFFI
+    | Bool(a) => a |> FFI.unsafeCastToFFI
+    };
+};
 
-type tensorLike3D =
-  | Typed(TypedArray.t)
-  | FlatInt(array(int))
-  | FlatFloat(array(float))
-  | FlatBool(array(bool))
-  | Int(array(array(array(int))))
-  | Float(array(array(array(float))))
-  | Bool(array(array(array(bool))));
+module TensorLike3D = {
+  type t =
+    | Typed(TypedArray.t)
+    | FlatInt(array(int))
+    | FlatFloat(array(float))
+    | FlatBool(array(bool))
+    | Int(array(array(array(int))))
+    | Float(array(array(array(float))))
+    | Bool(array(array(array(bool))));
+  let sendToTfjs = t =>
+    switch (t) {
+    | Typed(a) => a |> TypedArray.sendToTfjs
+    | FlatInt(a) => a |> FFI.unsafeCastToFFI
+    | FlatFloat(a) => a |> FFI.unsafeCastToFFI
+    | FlatBool(a) => a |> FFI.unsafeCastToFFI
+    | Int(a) => a |> FFI.unsafeCastToFFI
+    | Float(a) => a |> FFI.unsafeCastToFFI
+    | Bool(a) => a |> FFI.unsafeCastToFFI
+    };
+};
 
-type tensorLike4D =
-  | Typed(TypedArray.t)
-  | FlatInt(array(int))
-  | FlatFloat(array(float))
-  | FlatBool(array(bool))
-  | Int(array(array(array(array(int)))))
-  | Float(array(array(array(array(float)))))
-  | Bool(array(array(array(array(bool)))));
+module TensorLike4D = {
+  type t =
+    | Typed(TypedArray.t)
+    | FlatInt(array(int))
+    | FlatFloat(array(float))
+    | FlatBool(array(bool))
+    | Int(array(array(array(array(int)))))
+    | Float(array(array(array(array(float)))))
+    | Bool(array(array(array(array(bool)))));
+  let sendToTfjs = t =>
+    switch (t) {
+    | Typed(a) => a |> TypedArray.sendToTfjs
+    | FlatInt(a) => a |> FFI.unsafeCastToFFI
+    | FlatFloat(a) => a |> FFI.unsafeCastToFFI
+    | FlatBool(a) => a |> FFI.unsafeCastToFFI
+    | Int(a) => a |> FFI.unsafeCastToFFI
+    | Float(a) => a |> FFI.unsafeCastToFFI
+    | Bool(a) => a |> FFI.unsafeCastToFFI
+    };
+};
 
 type flatVector =
   | Float(array(float))
@@ -143,4 +197,23 @@ type flatVector =
 module Tensor = {
   type t;
   external unsafeCast : 'a => t = "%identity";
+};
+
+module TfArrayInput = {
+  type t =
+    | TypedArray(TypedArray.t)
+    | TensorLike(TensorLike.t)
+    | TensorLike1D(TensorLike1D.t)
+    | TensorLike2D(TensorLike2D.t)
+    | TensorLike3D(TensorLike3D.t)
+    | TensorLike4D(TensorLike4D.t);
+  let sendToTfjs = input =>
+    switch (input) {
+    | TypedArray(a) => TypedArray.sendToTfjs(a)
+    | TensorLike(t) => TensorLike.sendToTfjs(t)
+    | TensorLike1D(a) => a |> TensorLike1D.sendToTfjs
+    | TensorLike2D(a) => a |> TensorLike2D.sendToTfjs
+    | TensorLike3D(a) => a |> TensorLike3D.sendToTfjs
+    | TensorLike4D(a) => a |> TensorLike4D.sendToTfjs
+    };
 };
