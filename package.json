@@ -1,0 +1,40 @@
+{
+  "author": {
+    "email": "dev@hashback.io",
+    "name": "Hashback",
+    "url": "http://twitter.com/hashbackio"
+  },
+  "bugs": "https://github.com/hashbackio/bs-tfjs/issues",
+  "dependencies": {
+    "@glennsl/bs-json": "^1.3.1"
+  },
+  "devDependencies": {
+    "bs-platform": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=8.6.0"
+  },
+  "homepage": "https://github.com/hashbackio/bs-tfjs#readme",
+  "license": "MIT",
+  "keywords": [
+    "buckleScript",
+    "deeplearn.js",
+    "tfjs",
+    "propel",
+    "propelJS",
+    "propelML",
+    "reason",
+    "reasonML",
+    "tensorflow.js",
+    "tensorflow"
+  ],
+  "name": "bs-tfjs",
+  "peerDependencies": {},
+  "repository": "hashbackio/bs-tfjs",
+  "scripts": {
+    "build": "bsb -make-world",
+    "start": "bsb -make-world -w",
+    "clean": "bsb -clean-world"
+  },
+  "version": "0.1.0"
+}
