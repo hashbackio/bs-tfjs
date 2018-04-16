@@ -1,3 +1,8 @@
+module FFI = {
+  type t;
+  external unsafeCastToFFI : 'a => t = "%identity";
+};
+
 type shapeRank0 = array(int);
 
 /* TODO: Come back and see if this messes things up. TFJS is expecting (int) but
@@ -58,6 +63,15 @@ module TypedArray = {
     | a when a |> isUint8Array => Some(Bool(a |> unsafeCastToUint8Array))
     | _ => None
     };
+  let sendToTfjs = (t, tfjsFn) =>
+    (
+      switch (t) {
+      | Float32(f) => f |> FFI.unsafeCastToFFI
+      | Int32(i) => i |> FFI.unsafeCastToFFI
+      | Bool(b) => b |> FFI.unsafeCastToFFI
+      }
+    )
+    |> tfjsFn;
 };
 
 type tensorLike =
@@ -78,11 +92,20 @@ type tensorLike =
   | Float4D(array(array(array(array(float)))))
   | Bool4D(array(array(array(array(bool)))));
 
-type tensorLike1D =
-  | Typed(TypedArray.t)
-  | Int(array(int))
-  | Float(array(float))
-  | Bool(array(bool));
+module TensorLike1D = {
+  type t =
+    | Typed(TypedArray.t)
+    | Int(array(int))
+    | Float(array(float))
+    | Bool(array(bool));
+  let sendToTfjs = (t, tfjsFn) =>
+    switch (t) {
+    | Typed(ta) => ta |. TypedArray.sendToTfjs(tfjsFn)
+    | Int(i) => i |> FFI.unsafeCastToFFI |> tfjsFn
+    | Float(f) => f |> FFI.unsafeCastToFFI |> tfjsFn
+    | Bool(b) => b |> FFI.unsafeCastToFFI |> tfjsFn
+    };
+};
 
 type tensorLike2D =
   | Typed(TypedArray.t)
@@ -116,3 +139,8 @@ type flatVector =
   | Int(array(int))
   | Bool(array(bool))
   | Typed(TypedArray.t);
+
+module Tensor = {
+  type t;
+  external unsafeCast : 'a => t = "%identity";
+};
