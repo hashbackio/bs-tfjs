@@ -8,6 +8,26 @@ type rank = [ | `R0 | `R1 | `R2 | `R3 | `R4];
 
 module type Rank = {let rank: rank;};
 
+module Rank0: Rank = {
+  let rank = `R0;
+};
+
+module Rank1: Rank = {
+  let rank = `R1;
+};
+
+module Rank2: Rank = {
+  let rank = `R2;
+};
+
+module Rank3: Rank = {
+  let rank = `R3;
+};
+
+module Rank4: Rank = {
+  let rank = `R4;
+};
+
 module ShapeRank = {
   type shapeFromTfjs;
   type t =
@@ -223,6 +243,7 @@ type flatVector =
 
 module Tensor = (R: Rank) => {
   type t;
+  type dataId;
   [@bs.send] external number : t => int = "";
   [@bs.send] external shape : t => ShapeRank.shapeFromTfjs = "";
   let shape = t => t |> shape |. ShapeRank.getShapeRank(R.rank);
@@ -232,6 +253,18 @@ module Tensor = (R: Rank) => {
   [@bs.send] external rankType : t => string = "";
   let rankType = t => t |> rankType |> rankFromJs |> Belt.Option.getExn;
   [@bs.send] external strides : t => array(int) = "";
+  [@bs.send] external dataId : t => dataId = "";
+  /* [@bs.send] external flatten : t =>  */
   /*
    dataId: DataId; */
 };
+
+module Scalar = Tensor(Rank0);
+
+module Tensor1D = Tensor(Rank1);
+
+module Tensor2D = Tensor(Rank2);
+
+module Tensor3D = Tensor(Rank3);
+
+module Tensor4D = Tensor(Rank4);
