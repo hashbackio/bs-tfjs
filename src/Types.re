@@ -227,18 +227,11 @@ module Tensor = (R: Rank) => {
   [@bs.send] external shape : t => ShapeRank.shapeFromTfjs = "";
   let shape = t => t |> shape |. ShapeRank.getShapeRank(R.rank);
   [@bs.send] external size : t => int = "";
+  [@bs.send] external dtype : t => string = "";
+  let dtype = t => t |> dtype |> dTypeFromJs |> Belt.Option.getExn;
+  [@bs.send] external rankType : t => string = "";
+  let rankType = t => t |> rankType |> rankFromJs |> Belt.Option.getExn;
+  [@bs.send] external strides : t => array(int) = "";
   /*
-   dataId: DataId;
-   /** The data type for the array. */
-   readonly dtype: DataType;
-   /** The rank type for the array (see `Rank` enum). */
-   readonly rankType: R;
-
-   /**
-    * Number of elements to skip in each dimension when indexing. See
-    * https://docs.scipy.org/doc/numpy/reference/generated/\
-    * numpy.ndarray.strides.html
-    */
-   readonly strides: number[]; */
-  let rankType = () => R.rank;
+   dataId: DataId; */
 };
