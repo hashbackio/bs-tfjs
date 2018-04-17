@@ -254,9 +254,6 @@ module Tensor = (R: Rank) => {
   let rankType = t => t |> rankType |> rankFromJs |> Belt.Option.getExn;
   [@bs.send] external strides : t => array(int) = "";
   [@bs.send] external dataId : t => dataId = "";
-  /* [@bs.send] external flatten : t =>  */
-  /*
-   dataId: DataId; */
 };
 
 module Scalar = Tensor(Rank0);
@@ -268,3 +265,19 @@ module Tensor2D = Tensor(Rank2);
 module Tensor3D = Tensor(Rank3);
 
 module Tensor4D = Tensor(Rank4);
+
+[@bs.send] external flattenScalar : Scalar.t => Tensor1D.t = "flatten";
+
+[@bs.send] external flattenTensor1D : Tensor1D.t => Tensor1D.t = "flatten";
+
+[@bs.send] external flattenTensor2D : Tensor2D.t => Tensor1D.t = "flatten";
+
+[@bs.send] external flattenTensor3D : Tensor3D.t => Tensor1D.t = "flatten";
+
+[@bs.send] external flattenTensor4D : Tensor4D.t => Tensor1D.t = "flatten";
+/* [@bs.send] external asScalar : t => BaseTensor(Rank0).t = "";
+   [@bs.send] external as1D : t => BaseTensor(Rank1).t = "";
+   [@bs.send] external as2D : t => BaseTensor(Rank2).t = "";
+   [@bs.send] external as3D : t => BaseTensor(Rank3).t = "";
+   [@bs.send] external as4D : t => BaseTensor(Rank4).t = "";
+   [@bs.send] external asType : (t, dType) => t = ""; */
