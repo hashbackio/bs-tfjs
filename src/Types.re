@@ -3,35 +3,70 @@ module FFI = {
   external unsafeCastToFFI : 'a => t = "%identity";
 };
 
-module type Rank = {
-  [@bs.deriving jsConverter]
-  type t = [ | `R0 | `R1 | `R2 | `R3 | `R4];
-  let rank: t;
-};
+[@bs.deriving jsConverter]
+type rank = [ | `R0 | `R1 | `R2 | `R3 | `R4];
+
+module type Rank = {let rank: rank;};
 
 module ShapeRank = {
+  type shapeFromTfjs;
   type t =
     | ShapeRank0(array(int))
     | ShapeRank1(int)
     | ShapeRank2(int, int)
     | ShapeRank3(int, int, int)
     | ShapeRank4(int, int, int, int);
-  /* let getShapeRankFromRank = rank => switch(rank) {
-       | `R0 =>
-     }; */
+  external shapeFromTfjsToRank0 : shapeFromTfjs => array(int) = "%identity";
+  let shapeFromTfjsToRank1 = shapeFromTfjs =>
+    shapeFromTfjs |> shapeFromTfjsToRank0 |. Belt.Array.getUnsafe(0);
+  let shapeFromTfjsToRank2 = shapeFromTfjs =>
+    shapeFromTfjs
+    |> shapeFromTfjsToRank0
+    |> (
+      shapeArray => (
+        Belt.Array.getUnsafe(shapeArray, 0),
+        Belt.Array.getUnsafe(shapeArray, 1),
+      )
+    );
+  let shapeFromTfjsToRank3 = shapeFromTfjs =>
+    shapeFromTfjs
+    |> shapeFromTfjsToRank0
+    |> (
+      shapeArray => (
+        Belt.Array.getUnsafe(shapeArray, 0),
+        Belt.Array.getUnsafe(shapeArray, 1),
+        Belt.Array.getUnsafe(shapeArray, 2),
+      )
+    );
+  let shapeFromTfjsToRank4 = shapeFromTfjs =>
+    shapeFromTfjs
+    |> shapeFromTfjsToRank0
+    |> (
+      shapeArray => (
+        Belt.Array.getUnsafe(shapeArray, 0),
+        Belt.Array.getUnsafe(shapeArray, 1),
+        Belt.Array.getUnsafe(shapeArray, 2),
+        Belt.Array.getUnsafe(shapeArray, 3),
+      )
+    );
+  let getShapeRank = (shapeFromTfjs, rank: rank) =>
+    switch (rank) {
+    | `R0 => ShapeRank0(shapeFromTfjs |> shapeFromTfjsToRank0)
+    | `R1 => ShapeRank1(shapeFromTfjs |> shapeFromTfjsToRank1)
+    | `R2 =>
+      shapeFromTfjs
+      |> shapeFromTfjsToRank2
+      |> (((d1, d2)) => ShapeRank2(d1, d2))
+    | `R3 =>
+      shapeFromTfjs
+      |> shapeFromTfjsToRank3
+      |> (((d1, d2, d3)) => ShapeRank3(d1, d2, d3))
+    | `R4 =>
+      shapeFromTfjs
+      |> shapeFromTfjsToRank4
+      |> (((d1, d2, d3, d4)) => ShapeRank4(d1, d2, d3, d4))
+    };
 };
-
-type shapeRank0 = array(int);
-
-/* TODO: Come back and see if this messes things up. TFJS is expecting (int) but
-   you can't make a tuple of 1 value */
-type shapeRank1 = int;
-
-type shapeRank2 = (int, int);
-
-type shapeRank3 = (int, int, int);
-
-type shapeRank4 = (int, int, int, int);
 
 [@bs.deriving jsConverter]
 type dType = [ | `float32 | `int32 | `bool];
@@ -189,14 +224,11 @@ type flatVector =
 module Tensor = (R: Rank) => {
   type t;
   [@bs.send] external number : t => int = "";
-  [@bs.send] external shape : t => string = "";
-  /* let shape = t => t|> shape |> */
+  [@bs.send] external shape : t => ShapeRank.shapeFromTfjs = "";
+  let shape = t => t |> shape |. ShapeRank.getShapeRank(R.rank);
+  [@bs.send] external size : t => int = "";
   /*
    dataId: DataId;
-   /** The shape of the tensor. */
-   readonly shape: ShapeMap[R];
-   /** Number of elements in the tensor. */
-   readonly size: number;
    /** The data type for the array. */
    readonly dtype: DataType;
    /** The rank type for the array (see `Rank` enum). */
