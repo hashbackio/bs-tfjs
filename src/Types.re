@@ -241,20 +241,47 @@ type flatVector =
   | Bool(array(bool))
   | Typed(TypedArray.t);
 
-module Tensor = (R: Rank) => {
-  type t;
-  type dataId;
-  [@bs.send] external number : t => int = "";
-  [@bs.send] external shape : t => ShapeRank.shapeFromTfjs = "";
-  let shape = t => t |> shape |. ShapeRank.getShapeRank(R.rank);
-  [@bs.send] external size : t => int = "";
-  [@bs.send] external dtype : t => string = "";
-  let dtype = t => t |> dtype |> dTypeFromJs |> Belt.Option.getExn;
-  [@bs.send] external rankType : t => string = "";
-  let rankType = t => t |> rankType |> rankFromJs |> Belt.Option.getExn;
-  [@bs.send] external strides : t => array(int) = "";
-  [@bs.send] external dataId : t => dataId = "";
-};
+module rec Tensor:
+  (R: Rank) =>
+  {
+    type t;
+    type dataId;
+    let number: t => int;
+    let shape: t => ShapeRank.t;
+    let size: t => int;
+    let dtype: t => dType;
+    let rankType: t => rank;
+    let strides: t => array(int);
+    let dataId: t => dataId;
+    let flatten: t => Tensor(Rank0).t;
+    let asScalar: t => Tensor(Rank0).t;
+    let as1D: t => Tensor(Rank1).t;
+    let as2D: t => Tensor(Rank2).t;
+    let as3D: t => Tensor(Rank3).t;
+    let as4D: t => Tensor(Rank4).t;
+    let asType: (t, dType) => t;
+  } =
+  (R: Rank) => {
+    type t;
+    type dataId;
+    [@bs.send] external number : t => int = "";
+    [@bs.send] external shape : t => ShapeRank.shapeFromTfjs = "";
+    let shape = t => t |> shape |. ShapeRank.getShapeRank(R.rank);
+    [@bs.send] external size : t => int = "";
+    [@bs.send] external dtype : t => string = "";
+    let dtype = t => t |> dtype |> dTypeFromJs |> Belt.Option.getExn;
+    [@bs.send] external rankType : t => string = "";
+    let rankType = t => t |> rankType |> rankFromJs |> Belt.Option.getExn;
+    [@bs.send] external strides : t => array(int) = "";
+    [@bs.send] external dataId : t => dataId = "";
+    [@bs.send] external flatten : t => Tensor(Rank0).t = "";
+    [@bs.send] external asScalar : t => Tensor(Rank0).t = "";
+    [@bs.send] external as1D : t => Tensor(Rank1).t = "";
+    [@bs.send] external as2D : t => Tensor(Rank2).t = "";
+    [@bs.send] external as3D : t => Tensor(Rank3).t = "";
+    [@bs.send] external as4D : t => Tensor(Rank4).t = "";
+    [@bs.send] external asType : (t, dType) => t = "";
+  };
 
 module Scalar = Tensor(Rank0);
 
@@ -265,19 +292,3 @@ module Tensor2D = Tensor(Rank2);
 module Tensor3D = Tensor(Rank3);
 
 module Tensor4D = Tensor(Rank4);
-
-[@bs.send] external flattenScalar : Scalar.t => Tensor1D.t = "flatten";
-
-[@bs.send] external flattenTensor1D : Tensor1D.t => Tensor1D.t = "flatten";
-
-[@bs.send] external flattenTensor2D : Tensor2D.t => Tensor1D.t = "flatten";
-
-[@bs.send] external flattenTensor3D : Tensor3D.t => Tensor1D.t = "flatten";
-
-[@bs.send] external flattenTensor4D : Tensor4D.t => Tensor1D.t = "flatten";
-/* [@bs.send] external asScalar : t => BaseTensor(Rank0).t = "";
-   [@bs.send] external as1D : t => BaseTensor(Rank1).t = "";
-   [@bs.send] external as2D : t => BaseTensor(Rank2).t = "";
-   [@bs.send] external as3D : t => BaseTensor(Rank3).t = "";
-   [@bs.send] external as4D : t => BaseTensor(Rank4).t = "";
-   [@bs.send] external asType : (t, dType) => t = ""; */
