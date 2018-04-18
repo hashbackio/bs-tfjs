@@ -256,10 +256,52 @@ module rec Tensor:
     let flatten: t => Tensor(Rank0).t;
     let asScalar: t => Tensor(Rank0).t;
     let as1D: t => Tensor(Rank1).t;
-    let as2D: t => Tensor(Rank2).t;
-    let as3D: t => Tensor(Rank3).t;
-    let as4D: t => Tensor(Rank4).t;
+    let as2D: (t, int, int) => Tensor(Rank2).t;
+    let as3D: (t, int, int, int) => Tensor(Rank3).t;
+    let as4D: (t, int, int, int, int) => Tensor(Rank4).t;
     let asType: (t, dType) => t;
+    let data: t => Js.Promise.t(TypedArray.t);
+    let dataSync: t => TypedArray.t;
+    let dispose: t => unit;
+    let toFloat: t => t;
+    let toInt: t => t;
+    let toBool: t => t;
+    let print: t => unit;
+    let printVerbose: t => unit;
+    let reshapeTo1D: (t, int) => Tensor(Rank1).t;
+    let reshapeTo2D: (t, (int, int)) => Tensor(Rank2).t;
+    let reshapeTo3D: (t, (int, int, int)) => Tensor(Rank3).t;
+    let reshapeTo4D: (t, (int, int, int, int)) => Tensor(Rank4).t;
+    let reshapeAs1D: (t, Tensor(Rank1).t) => Tensor(Rank1).t;
+    let reshapeAs2D: (t, Tensor(Rank2).t) => Tensor(Rank2).t;
+    let reshapeAs3D: (t, Tensor(Rank3).t) => Tensor(Rank3).t;
+    let reshapeAs4D: (t, Tensor(Rank4).t) => Tensor(Rank4).t;
+    let expandScalarDims: Tensor(Rank0).t => Tensor(Rank1).t;
+    let expand1dDims: Tensor(Rank1).t => Tensor(Rank2).t;
+    let expand2dDimsOnXAxis: Tensor(Rank2).t => Tensor(Rank3).t;
+    let expand2dDimsOnYAxis: Tensor(Rank2).t => Tensor(Rank3).t;
+    let expand3dDimsOnXAxis: Tensor(Rank3).t => Tensor(Rank4).t;
+    let expand3dDimsOnYAxis: Tensor(Rank3).t => Tensor(Rank4).t;
+    let expand3dDimsOnZAxis: Tensor(Rank3).t => Tensor(Rank4).t;
+    let clone: t => t;
+    let toString: t => string;
+    let toStringVerbose: t => string;
+    /* TODO:
+        ------------------------------------------------------------------------------------------------------
+        buffer () method source
+        Returns a tf.TensorBuffer that holds the underlying data.
+
+        Returns: tf.TensorBuffer
+
+        ------------------------------------------------------------------------------------------------------
+        squeeze (axis?) method source
+        Returns a tf.Tensor with dimensions of size 1 removed from the shape. See tf.squeeze() for more details.
+
+        Parameters:
+        axis (number[]) A list of numbers. If specified, only squeezes the dimensions listed. The dimension
+        index starts at 0. It is an error to squeeze a dimension that is not 1. Optional
+        Returns: tf.Tensor
+       */
   } =
   (R: Rank) => {
     type t;
@@ -277,10 +319,85 @@ module rec Tensor:
     [@bs.send] external flatten : t => Tensor(Rank0).t = "";
     [@bs.send] external asScalar : t => Tensor(Rank0).t = "";
     [@bs.send] external as1D : t => Tensor(Rank1).t = "";
-    [@bs.send] external as2D : t => Tensor(Rank2).t = "";
-    [@bs.send] external as3D : t => Tensor(Rank3).t = "";
-    [@bs.send] external as4D : t => Tensor(Rank4).t = "";
+    [@bs.send] external as2D : (t, int, int) => Tensor(Rank2).t = "";
+    [@bs.send] external as3D : (t, int, int, int) => Tensor(Rank3).t = "";
+    [@bs.send] external as4D : (t, int, int, int, int) => Tensor(Rank4).t = "";
     [@bs.send] external asType : (t, dType) => t = "";
+    [@bs.send] external data : t => Js.Promise.t(TypedArray.maybeT) = "";
+    let data = t =>
+      t
+      |> data
+      |> Js.Promise.(
+           then_(maybeT =>
+             maybeT |> TypedArray.cast |> Belt.Option.getExn |> resolve
+           )
+         );
+    [@bs.send] external dataSync : t => TypedArray.maybeT = "";
+    let dataSync = t => t |> dataSync |> TypedArray.cast |> Belt.Option.getExn;
+    [@bs.send] external dispose : t => unit = "";
+    [@bs.send] external toFloat : t => t = "";
+    [@bs.send] external toInt : t => t = "";
+    [@bs.send] external toBool : t => t = "";
+    [@bs.send] external print : t => unit = "";
+    [@bs.send]
+    external printVerbose : (t, [@bs.as {json|true|json}] _) => unit = "print";
+    [@bs.send]
+    external reshapeAs1D : (t, array(int)) => Tensor(Rank1).t = "reshape";
+    let reshapeTo1D = (t, x) => reshapeAs1D(t, [|x|]);
+    [@bs.send]
+    external reshapeAs2D : (t, array(int)) => Tensor(Rank2).t = "reshape";
+    let reshapeTo2D = (t, (x, y)) => reshapeAs2D(t, [|x, y|]);
+    [@bs.send]
+    external reshapeAs3D : (t, array(int)) => Tensor(Rank3).t = "reshape";
+    let reshapeTo3D = (t, (x, y, z)) => reshapeAs3D(t, [|x, y, z|]);
+    [@bs.send]
+    external reshapeAs4D : (t, array(int)) => Tensor(Rank4).t = "reshape";
+    let reshapeTo4D = (tensor, (x, y, z, t)) =>
+      reshapeAs4D(tensor, [|x, y, z, t|]);
+    [@bs.send]
+    external reshapeAs1D : (t, Tensor(Rank1).t) => Tensor(Rank1).t =
+      "reshapeAs";
+    [@bs.send]
+    external reshapeAs2D : (t, Tensor(Rank2).t) => Tensor(Rank2).t =
+      "reshapeAs";
+    [@bs.send]
+    external reshapeAs3D : (t, Tensor(Rank3).t) => Tensor(Rank3).t =
+      "reshapeAs";
+    [@bs.send]
+    external reshapeAs4D : (t, Tensor(Rank4).t) => Tensor(Rank4).t =
+      "reshapeAs";
+    [@bs.send]
+    external expandScalarDims :
+      (Tensor(Rank0).t, [@bs.as 0] _) => Tensor(Rank1).t =
+      "expandDims";
+    [@bs.send]
+    external expand1dDims : (Tensor(Rank1).t, [@bs.as 1] _) => Tensor(Rank2).t =
+      "expandDims";
+    [@bs.send]
+    external expand2dDimsOnXAxis :
+      (Tensor(Rank2).t, [@bs.as 1] _) => Tensor(Rank3).t =
+      "expandDims";
+    [@bs.send]
+    external expand2dDimsOnYAxis :
+      (Tensor(Rank2).t, [@bs.as 2] _) => Tensor(Rank3).t =
+      "expandDims";
+    [@bs.send]
+    external expand3dDimsOnXAxis :
+      (Tensor(Rank3).t, [@bs.as 1] _) => Tensor(Rank4).t =
+      "expandDims";
+    [@bs.send]
+    external expand3dDimsOnYAxis :
+      (Tensor(Rank3).t, [@bs.as 2] _) => Tensor(Rank4).t =
+      "expandDims";
+    [@bs.send]
+    external expand3dDimsOnZAxis :
+      (Tensor(Rank3).t, [@bs.as 3] _) => Tensor(Rank4).t =
+      "expandDims";
+    [@bs.send] external clone : t => t = "";
+    [@bs.send] external toString : t => string = "";
+    [@bs.send]
+    external toStringVerbose : (t, [@bs.as {json|true|json}] _) => string =
+      "toString";
   };
 
 module Scalar = Tensor(Rank0);
