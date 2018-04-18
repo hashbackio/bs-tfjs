@@ -179,10 +179,10 @@ module rec Tensor:
       let linspace: (float, float, float) => Tensor(Rank1)(FloatDataType).t;
       let oneHot:
         (Tensor(Rank1)(IntDataType).t, int) => Tensor(Rank2)(FloatDataType).t;
-      let oneHotFloat:
+      let oneHotWithFloatOptions:
         (Tensor(Rank1)(IntDataType).t, int, float, float) =>
         Tensor(Rank2)(FloatDataType).t;
-      let oneHotInt:
+      let oneHotWithIntOptions:
         (Tensor(Rank1)(IntDataType).t, int, int, int) =>
         Tensor(Rank2)(FloatDataType).t;
       let ones: R.shape => t;
@@ -265,12 +265,12 @@ module rec Tensor:
         (Tensor(Rank1)(IntDataType).t, int) => Tensor(Rank2)(FloatDataType).t =
         "";
       [@bs.module "@tensorflow/tfjs"]
-      external oneHotFloat :
+      external oneHotWithFloatOptions :
         (Tensor(Rank1)(IntDataType).t, int, float, float) =>
         Tensor(Rank2)(FloatDataType).t =
         "oneHot";
       [@bs.module "@tensorflow/tfjs"]
-      external oneHotInt :
+      external oneHotWithIntOptions :
         (Tensor(Rank1)(IntDataType).t, int, int, int) =>
         Tensor(Rank2)(FloatDataType).t =
         "oneHot";
