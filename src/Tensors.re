@@ -4,37 +4,75 @@ type rank = [ | `R0 | `R1 | `R2 | `R3 | `R4];
 module type Rank = {
   let rank: rank;
   type shape;
+  type padding;
   let getShapeArray: shape => array(int);
+  let getPaddingArray: padding => array(array(int));
 };
 
-module Rank0: Rank = {
+module rec Rank0: Rank = {
   let rank = `R0;
   type shape = unit;
+  type padding = unit;
   let getShapeArray = () => [||];
-};
-
-module Rank1: Rank = {
+  let getPaddingArray = () => [||];
+}
+and Rank1: Rank = {
   let rank = `R1;
   type shape = int;
+  type padding = (int, int);
   let getShapeArray = x => [|x|];
-};
-
-module Rank2: Rank = {
+  let getPaddingArray = ((paddingBefore, paddingAfter)) => [|
+    [|paddingBefore, paddingAfter|],
+  |];
+}
+and Rank2: Rank = {
   let rank = `R2;
   type shape = (int, int);
+  type padding = ((int, int), (int, int));
   let getShapeArray = ((x, y)) => [|x, y|];
-};
-
-module Rank3: Rank = {
+  let getPaddingArray =
+      (((xPaddingBefore, xPaddingAfter), (yPaddingBefore, yPaddingAfter))) => [|
+    [|xPaddingBefore, xPaddingAfter|],
+    [|yPaddingBefore, yPaddingAfter|],
+  |];
+}
+and Rank3: Rank = {
   let rank = `R3;
   type shape = (int, int, int);
+  type padding = ((int, int), (int, int), (int, int));
   let getShapeArray = ((x, y, z)) => [|x, y, z|];
-};
-
-module Rank4: Rank = {
+  let getPaddingArray =
+      (
+        (
+          (xPaddingBefore, xPaddingAfter),
+          (yPaddingBefore, yPaddingAfter),
+          (zPaddingBefore, zPaddingAfter),
+        ),
+      ) => [|
+    [|xPaddingBefore, xPaddingAfter|],
+    [|yPaddingBefore, yPaddingAfter|],
+    [|zPaddingBefore, zPaddingAfter|],
+  |];
+}
+and Rank4: Rank = {
   let rank = `R4;
   type shape = (int, int, int, int);
+  type padding = ((int, int), (int, int), (int, int), (int, int));
   let getShapeArray = ((x, y, z, t)) => [|x, y, z, t|];
+  let getPaddingArray =
+      (
+        (
+          (xPaddingBefore, xPaddingAfter),
+          (yPaddingBefore, yPaddingAfter),
+          (zPaddingBefore, zPaddingAfter),
+          (tPaddingBefore, tPaddingAfter),
+        ),
+      ) => [|
+    [|xPaddingBefore, xPaddingAfter|],
+    [|yPaddingBefore, yPaddingAfter|],
+    [|zPaddingBefore, zPaddingAfter|],
+    [|tPaddingBefore, tPaddingAfter|],
+  |];
 };
 
 module ShapeRank = {
@@ -136,6 +174,7 @@ module rec Tensor:
     type primitiveDataType = D.t;
     module Create: {
       let tensor: typedArray => t;
+      let clone: t => t;
       let fill: (R.shape, D.t) => t;
       let linspace: (float, float, float) => Tensor(Rank1)(FloatDataType).t;
       let oneHot:
@@ -162,50 +201,47 @@ module rec Tensor:
       let variableWithOptions: (t, bool, string) => Variable(R)(D).t;
       let zeros: R.shape => Tensor(R)(D).t;
       let zerosLike: t => t;
+      /* TODO:
+         https://js.tensorflow.org/api/0.9.0/#fromPixels
+         */
     };
-    let number: t => int;
-    let shape: t => ShapeRank.t;
-    let size: t => int;
-    let dtype: t => dType;
-    let rankType: t => rank;
-    let strides: t => array(int);
-    let dataId: t => dataId;
-    let flatten: t => Tensor(Rank0)(D).t;
-    let asScalar: t => Tensor(Rank0)(D).t;
-    let as1D: t => Tensor(Rank1)(D).t;
-    let as2D: (t, int, int) => Tensor(Rank2)(D).t;
-    let as3D: (t, int, int, int) => Tensor(Rank3)(D).t;
-    let as4D: (t, int, int, int, int) => Tensor(Rank4)(D).t;
+    module Transform: {
+      let asScalar: t => Tensor(Rank0)(D).t;
+      let expand1dDims: Tensor(Rank1)(D).t => Tensor(Rank2)(D).t;
+      let expand2dDimsOnXAxis: Tensor(Rank2)(D).t => Tensor(Rank3)(D).t;
+      let expand2dDimsOnYAxis: Tensor(Rank2)(D).t => Tensor(Rank3)(D).t;
+      let expand3dDimsOnXAxis: Tensor(Rank3)(D).t => Tensor(Rank4)(D).t;
+      let expand3dDimsOnYAxis: Tensor(Rank3)(D).t => Tensor(Rank4)(D).t;
+      let expand3dDimsOnZAxis: Tensor(Rank3)(D).t => Tensor(Rank4)(D).t;
+      let expandScalarDims: Tensor(Rank0)(D).t => Tensor(Rank1)(D).t;
+      let flatten: t => Tensor(Rank1)(D).t;
+      let pad: (t, R.padding) => t;
+      let padWithOptions: (t, R.padding, D.t) => t;
+      let reshapeAs1D: (t, Tensor(Rank1)(D).t) => Tensor(Rank1)(D).t;
+      let reshapeAs2D: (t, Tensor(Rank2)(D).t) => Tensor(Rank2)(D).t;
+      let reshapeAs3D: (t, Tensor(Rank3)(D).t) => Tensor(Rank3)(D).t;
+      let reshapeAs4D: (t, Tensor(Rank4)(D).t) => Tensor(Rank4)(D).t;
+      let reshapeTo1D: (t, Rank1.shape) => Tensor(Rank1)(D).t;
+      let reshapeTo2D: (t, Rank2.shape) => Tensor(Rank2)(D).t;
+      let reshapeTo3D: (t, Rank3.shape) => Tensor(Rank3)(D).t;
+      let reshapeTo4D: (t, Rank4.shape) => Tensor(Rank4)(D).t;
+      let toFloat: t => Tensor(R)(FloatDataType).t;
+      let toInt: t => Tensor(R)(IntDataType).t;
+      let toBool: t => Tensor(R)(BoolDataType).t;
+      /* TODO:
+         https://js.tensorflow.org/api/0.9.0/#buffer
+         https://js.tensorflow.org/api/0.9.0/#squeeze
+         */
+    };
     let data: t => Js.Promise.t(D.typedArray);
     let dataSync: t => D.typedArray;
     let dispose: t => unit;
-    let toFloat: t => Tensor(R)(FloatDataType).t;
-    let toInt: t => Tensor(R)(IntDataType).t;
-    let toBool: t => Tensor(R)(BoolDataType).t;
     let print: t => unit;
     let printVerbose: t => unit;
-    let reshapeTo1D: (t, int) => Tensor(Rank1)(D).t;
-    let reshapeTo2D: (t, (int, int)) => Tensor(Rank2)(D).t;
-    let reshapeTo3D: (t, (int, int, int)) => Tensor(Rank3)(D).t;
-    let reshapeTo4D: (t, (int, int, int, int)) => Tensor(Rank4)(D).t;
-    let reshapeAs1D: (t, Tensor(Rank1)(D).t) => Tensor(Rank1)(D).t;
-    let reshapeAs2D: (t, Tensor(Rank2)(D).t) => Tensor(Rank2)(D).t;
-    let reshapeAs3D: (t, Tensor(Rank3)(D).t) => Tensor(Rank3)(D).t;
-    let reshapeAs4D: (t, Tensor(Rank4)(D).t) => Tensor(Rank4)(D).t;
-    let expandScalarDims: Tensor(Rank0)(D).t => Tensor(Rank1)(D).t;
-    let expand1dDims: Tensor(Rank1)(D).t => Tensor(Rank2)(D).t;
-    let expand2dDimsOnXAxis: Tensor(Rank2)(D).t => Tensor(Rank3)(D).t;
-    let expand2dDimsOnYAxis: Tensor(Rank2)(D).t => Tensor(Rank3)(D).t;
-    let expand3dDimsOnXAxis: Tensor(Rank3)(D).t => Tensor(Rank4)(D).t;
-    let expand3dDimsOnYAxis: Tensor(Rank3)(D).t => Tensor(Rank4)(D).t;
-    let expand3dDimsOnZAxis: Tensor(Rank3)(D).t => Tensor(Rank4)(D).t;
-    let clone: t => t;
     let toString: t => string;
     let toStringVerbose: t => string;
     /* TODO:
-       https://js.tensorflow.org/api/0.9.0/#fromPixels
        https://js.tensorflow.org/api/0.9.0/#tf.Tensor.buffer
-       https://js.tensorflow.org/api/0.9.0/#tf.Tensor.squeeze
        */
   } =
   (R: Rank, D: DataType) => {
@@ -215,6 +251,7 @@ module rec Tensor:
     type primitiveDataType = D.t;
     module Create = {
       [@bs.module "@tensorflow/tfjs"] external tensor : typedArray => t = "";
+      [@bs.module "@tensorflow/tfjs"] external clone : t => t = "";
       [@bs.module "@tensorflow/tfjs"]
       external fill : (array(int), D.t, string) => t = "";
       let fill = (shape, value) =>
@@ -318,86 +355,86 @@ module rec Tensor:
         zeros(shape |> R.getShapeArray, D.dType |> dTypeToJs);
       [@bs.module "@tensorflow/tfjs"] external zerosLike : t => t = "";
     };
-    [@bs.send] external number : t => int = "";
-    [@bs.send] external shape : t => ShapeRank.shapeFromTfjs = "";
-    let shape = t => t |> shape |. ShapeRank.getShapeRank(R.rank);
-    [@bs.send] external size : t => int = "";
-    [@bs.send] external dtype : t => string = "";
-    let dtype = t => t |> dtype |> dTypeFromJs |> Belt.Option.getExn;
-    [@bs.send] external rankType : t => string = "";
-    let rankType = t => t |> rankType |> rankFromJs |> Belt.Option.getExn;
-    [@bs.send] external strides : t => array(int) = "";
-    [@bs.send] external dataId : t => dataId = "";
-    [@bs.send] external flatten : t => Tensor(Rank0)(D).t = "";
-    [@bs.send] external asScalar : t => Tensor(Rank0)(D).t = "";
-    [@bs.send] external as1D : t => Tensor(Rank1)(D).t = "";
-    [@bs.send] external as2D : (t, int, int) => Tensor(Rank2)(D).t = "";
-    [@bs.send] external as3D : (t, int, int, int) => Tensor(Rank3)(D).t = "";
-    [@bs.send]
-    external as4D : (t, int, int, int, int) => Tensor(Rank4)(D).t = "";
+    module Transform = {
+      [@bs.send] external asScalar : t => Tensor(Rank0)(D).t = "";
+      [@bs.send]
+      external expand1dDims :
+        (Tensor(Rank1)(D).t, [@bs.as 1] _) => Tensor(Rank2)(D).t =
+        "expandDims";
+      [@bs.send]
+      external expand2dDimsOnXAxis :
+        (Tensor(Rank2)(D).t, [@bs.as 1] _) => Tensor(Rank3)(D).t =
+        "expandDims";
+      [@bs.send]
+      external expand2dDimsOnYAxis :
+        (Tensor(Rank2)(D).t, [@bs.as 2] _) => Tensor(Rank3)(D).t =
+        "expandDims";
+      [@bs.send]
+      external expand3dDimsOnXAxis :
+        (Tensor(Rank3)(D).t, [@bs.as 1] _) => Tensor(Rank4)(D).t =
+        "expandDims";
+      [@bs.send]
+      external expand3dDimsOnYAxis :
+        (Tensor(Rank3)(D).t, [@bs.as 2] _) => Tensor(Rank4)(D).t =
+        "expandDims";
+      [@bs.send]
+      external expand3dDimsOnZAxis :
+        (Tensor(Rank3)(D).t, [@bs.as 3] _) => Tensor(Rank4)(D).t =
+        "expandDims";
+      [@bs.send]
+      external expandScalarDims :
+        (Tensor(Rank0)(D).t, [@bs.as 0] _) => Tensor(Rank1)(D).t =
+        "expandDims";
+      [@bs.send] external flatten : t => Tensor(Rank1)(D).t = "";
+      [@bs.module "@tensorflow/tfjs"]
+      external pad : (t, array(array(int))) => t = "";
+      let pad = (t, padding) => padding |> R.getPaddingArray |> pad(t);
+      [@bs.module "@tensorflow/tfjs"]
+      external padWithOptions : (t, array(array(int)), D.t) => t = "pad";
+      let padWithOptions = (t, padding, valueToPadWith) =>
+        padding |> R.getPaddingArray |> padWithOptions(t, _, valueToPadWith);
+      [@bs.send]
+      external reshapeAs1D : (t, Tensor(Rank1)(D).t) => Tensor(Rank1)(D).t =
+        "reshapeAs";
+      [@bs.send]
+      external reshapeAs2D : (t, Tensor(Rank2)(D).t) => Tensor(Rank2)(D).t =
+        "reshapeAs";
+      [@bs.send]
+      external reshapeAs3D : (t, Tensor(Rank3)(D).t) => Tensor(Rank3)(D).t =
+        "reshapeAs";
+      [@bs.send]
+      external reshapeAs4D : (t, Tensor(Rank4)(D).t) => Tensor(Rank4)(D).t =
+        "reshapeAs";
+      [@bs.send]
+      external reshapeTo1D : (t, array(int)) => Tensor(Rank1)(D).t =
+        "reshape";
+      let reshapeTo1D = (t, shape) =>
+        shape |> Rank1.getShapeArray |> reshapeTo1D(t);
+      [@bs.send]
+      external reshapeTo2D : (t, array(int)) => Tensor(Rank2)(D).t =
+        "reshape";
+      let reshapeTo2D = (t, shape) =>
+        shape |> Rank2.getShapeArray |> reshapeTo2D(t);
+      [@bs.send]
+      external reshapeTo3D : (t, array(int)) => Tensor(Rank3)(D).t =
+        "reshape";
+      let reshapeTo3D = (t, shape) =>
+        shape |> Rank3.getShapeArray |> reshapeTo3D(t);
+      [@bs.send]
+      external reshapeTo4D : (t, array(int)) => Tensor(Rank4)(D).t =
+        "reshape";
+      let reshapeTo4D = (t, shape) =>
+        shape |> Rank4.getShapeArray |> reshapeTo4D(t);
+      [@bs.send] external toFloat : t => Tensor(R)(FloatDataType).t = "";
+      [@bs.send] external toInt : t => Tensor(R)(IntDataType).t = "";
+      [@bs.send] external toBool : t => Tensor(R)(BoolDataType).t = "";
+    };
     [@bs.send] external data : t => Js.Promise.t(D.typedArray) = "";
     [@bs.send] external dataSync : t => D.typedArray = "";
     [@bs.send] external dispose : t => unit = "";
-    [@bs.send] external toFloat : t => Tensor(R)(FloatDataType).t = "";
-    [@bs.send] external toInt : t => Tensor(R)(IntDataType).t = "";
-    [@bs.send] external toBool : t => Tensor(R)(BoolDataType).t = "";
     [@bs.send] external print : t => unit = "";
     [@bs.send]
     external printVerbose : (t, [@bs.as {json|true|json}] _) => unit = "print";
-    [@bs.send]
-    external reshapeAs1D : (t, array(int)) => Tensor(Rank1)(D).t = "reshape";
-    let reshapeTo1D = (t, x) => reshapeAs1D(t, [|x|]);
-    [@bs.send]
-    external reshapeAs2D : (t, array(int)) => Tensor(Rank2)(D).t = "reshape";
-    let reshapeTo2D = (t, (x, y)) => reshapeAs2D(t, [|x, y|]);
-    [@bs.send]
-    external reshapeAs3D : (t, array(int)) => Tensor(Rank3)(D).t = "reshape";
-    let reshapeTo3D = (t, (x, y, z)) => reshapeAs3D(t, [|x, y, z|]);
-    [@bs.send]
-    external reshapeAs4D : (t, array(int)) => Tensor(Rank4)(D).t = "reshape";
-    let reshapeTo4D = (tensor, (x, y, z, t)) =>
-      reshapeAs4D(tensor, [|x, y, z, t|]);
-    [@bs.send]
-    external reshapeAs1D : (t, Tensor(Rank1)(D).t) => Tensor(Rank1)(D).t =
-      "reshapeAs";
-    [@bs.send]
-    external reshapeAs2D : (t, Tensor(Rank2)(D).t) => Tensor(Rank2)(D).t =
-      "reshapeAs";
-    [@bs.send]
-    external reshapeAs3D : (t, Tensor(Rank3)(D).t) => Tensor(Rank3)(D).t =
-      "reshapeAs";
-    [@bs.send]
-    external reshapeAs4D : (t, Tensor(Rank4)(D).t) => Tensor(Rank4)(D).t =
-      "reshapeAs";
-    [@bs.send]
-    external expandScalarDims :
-      (Tensor(Rank0)(D).t, [@bs.as 0] _) => Tensor(Rank1)(D).t =
-      "expandDims";
-    [@bs.send]
-    external expand1dDims :
-      (Tensor(Rank1)(D).t, [@bs.as 1] _) => Tensor(Rank2)(D).t =
-      "expandDims";
-    [@bs.send]
-    external expand2dDimsOnXAxis :
-      (Tensor(Rank2)(D).t, [@bs.as 1] _) => Tensor(Rank3)(D).t =
-      "expandDims";
-    [@bs.send]
-    external expand2dDimsOnYAxis :
-      (Tensor(Rank2)(D).t, [@bs.as 2] _) => Tensor(Rank3)(D).t =
-      "expandDims";
-    [@bs.send]
-    external expand3dDimsOnXAxis :
-      (Tensor(Rank3)(D).t, [@bs.as 1] _) => Tensor(Rank4)(D).t =
-      "expandDims";
-    [@bs.send]
-    external expand3dDimsOnYAxis :
-      (Tensor(Rank3)(D).t, [@bs.as 2] _) => Tensor(Rank4)(D).t =
-      "expandDims";
-    [@bs.send]
-    external expand3dDimsOnZAxis :
-      (Tensor(Rank3)(D).t, [@bs.as 3] _) => Tensor(Rank4)(D).t =
-      "expandDims";
-    [@bs.send] external clone : t => t = "";
     [@bs.send] external toString : t => string = "";
     [@bs.send]
     external toStringVerbose : (t, [@bs.as {json|true|json}] _) => string =
