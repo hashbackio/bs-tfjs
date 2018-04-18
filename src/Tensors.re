@@ -17,25 +17,23 @@ let tensor1d = tensor1DValue =>
 [@bs.module "@tensorflow/tfjs"]
 external tensor2d : (Types.FFI.t, string) => Types.Tensor2D.t = "";
 
-let tensor2d =
-  tensor2DValue =>
-    tensor2DValue
-    |> Types.TensorLike2D.sendToTfjs
-    |> (((ffi, dType)) => tensor2d(ffi, dType |> Types.dTypeToJs));
+let tensor2d = tensor2DValue =>
+  tensor2DValue
+  |> Types.TensorLike2D.sendToTfjs
+  |> (((ffi, dType)) => tensor2d(ffi, dType |> Types.dTypeToJs));
 
 [@bs.module "@tensorflow/tfjs"]
 external tensor3d : (Types.FFI.t, string) => Types.Tensor3D.t = "";
 
 let tensor3d = tensor3DValue =>
-    tensor3DValue
-    |> Types.TensorLike3D.sendToTfjs
-    |> (((ffi, dType)) => tensor3d(ffi, dType |> Types.dTypeToJs));
+  tensor3DValue
+  |> Types.TensorLike3D.sendToTfjs
+  |> (((ffi, dType)) => tensor3d(ffi, dType |> Types.dTypeToJs));
 
 [@bs.module "@tensorflow/tfjs"]
 external tensor4d : (Types.FFI.t, string) => Types.Tensor4D.t = "";
 
-let tensor4d =
-  tensor4DValue =>
-    tensor4DValue
-    |> Types.TensorLike4D.sendToTfjs
-    |> (((ffi, dType)) => tensor4d(ffi, dType |> Types.dTypeToJs));
+let tensor4d = tensor4DValue =>
+  tensor4DValue
+  |> Types.TensorLike4D.sendToTfjs
+  |> (((ffi, dType)) => tensor4d(ffi, dType |> Types.dTypeToJs));
