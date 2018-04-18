@@ -1,26 +1,40 @@
 [@bs.deriving jsConverter]
 type rank = [ | `R0 | `R1 | `R2 | `R3 | `R4];
 
-module type Rank = {let rank: rank;};
+module type Rank = {
+  let rank: rank;
+  type shape;
+  let getShapeArray: shape => array(int);
+};
 
 module Rank0: Rank = {
   let rank = `R0;
+  type shape = unit;
+  let getShapeArray = () => [||];
 };
 
 module Rank1: Rank = {
   let rank = `R1;
+  type shape = int;
+  let getShapeArray = x => [|x|];
 };
 
 module Rank2: Rank = {
   let rank = `R2;
+  type shape = (int, int);
+  let getShapeArray = ((x, y)) => [|x, y|];
 };
 
 module Rank3: Rank = {
   let rank = `R3;
+  type shape = (int, int, int);
+  let getShapeArray = ((x, y, z)) => [|x, y, z|];
 };
 
 module Rank4: Rank = {
   let rank = `R4;
+  type shape = (int, int, int, int);
+  let getShapeArray = ((x, y, z, t)) => [|x, y, z, t|];
 };
 
 module ShapeRank = {
@@ -102,8 +116,15 @@ module IntDataType: DataType = {
 
 module BoolDataType: DataType = {
   let dType = `bool;
-  type t = bool;
+  type t = int;
   type typedArray = Js.Typed_array.Uint32Array.t;
+};
+
+module Variable = (R: Rank, D: DataType) => {
+  type t;
+  type dataId;
+  type typedArray = D.typedArray;
+  type primitiveDataType = D.t;
 };
 
 module rec Tensor:
@@ -113,7 +134,35 @@ module rec Tensor:
     type dataId;
     type typedArray = D.typedArray;
     type primitiveDataType = D.t;
-    let make: typedArray => t;
+    module Create: {
+      let tensor: typedArray => t;
+      let fill: (R.shape, D.t) => t;
+      let linspace: (float, float, float) => Tensor(Rank1)(FloatDataType).t;
+      let oneHot:
+        (Tensor(Rank1)(IntDataType).t, int) => Tensor(Rank2)(FloatDataType).t;
+      let oneHotFloat:
+        (Tensor(Rank1)(IntDataType).t, int, float, float) =>
+        Tensor(Rank2)(FloatDataType).t;
+      let oneHotInt:
+        (Tensor(Rank1)(IntDataType).t, int, int, int) =>
+        Tensor(Rank2)(FloatDataType).t;
+      let ones: R.shape => t;
+      let onesLike: t => t;
+      let randomNormal: R.shape => Tensor(R)(FloatDataType).t;
+      let randomNormalWithOptions:
+        (R.shape, float, float, float) => Tensor(R)(FloatDataType).t;
+      let randomUniform: R.shape => Tensor(R)(FloatDataType).t;
+      let randomUniformWithOptions: (R.shape, D.t, D.t) => Tensor(R)(D).t;
+      let range: (int, int, int) => Tensor(Rank1)(IntDataType).t;
+      let rangeFloats: (float, float, float) => Tensor(Rank1)(FloatDataType).t;
+      let truncatedNormal: R.shape => Tensor(R)(D).t;
+      let truncatedNormalWithOptions:
+        (R.shape, float, float, float) => Tensor(R)(D).t;
+      let variable: t => Variable(R)(D).t;
+      let variableWithOptions: (t, bool, string) => Variable(R)(D).t;
+      let zeros: R.shape => Tensor(R)(D).t;
+      let zerosLike: t => t;
+    };
     let number: t => int;
     let shape: t => ShapeRank.t;
     let size: t => int;
@@ -154,20 +203,9 @@ module rec Tensor:
     let toString: t => string;
     let toStringVerbose: t => string;
     /* TODO:
-        ------------------------------------------------------------------------------------------------------
-        buffer () method source
-        Returns a tf.TensorBuffer that holds the underlying data.
-
-        Returns: tf.TensorBuffer
-
-        ------------------------------------------------------------------------------------------------------
-        squeeze (axis?) method source
-        Returns a tf.Tensor with dimensions of size 1 removed from the shape. See tf.squeeze() for more details.
-
-        Parameters:
-        axis (number[]) A list of numbers. If specified, only squeezes the dimensions listed. The dimension
-        index starts at 0. It is an error to squeeze a dimension that is not 1. Optional
-        Returns: tf.Tensor
+       https://js.tensorflow.org/api/0.9.0/#fromPixels
+       https://js.tensorflow.org/api/0.9.0/#tf.Tensor.buffer
+       https://js.tensorflow.org/api/0.9.0/#tf.Tensor.squeeze
        */
   } =
   (R: Rank, D: DataType) => {
@@ -175,7 +213,111 @@ module rec Tensor:
     type dataId;
     type typedArray = D.typedArray;
     type primitiveDataType = D.t;
-    [@bs.module "@tensorflow/tfjs"] external make : typedArray => t = "tensor";
+    module Create = {
+      [@bs.module "@tensorflow/tfjs"] external tensor : typedArray => t = "";
+      [@bs.module "@tensorflow/tfjs"]
+      external fill : (array(int), D.t, string) => t = "";
+      let fill = (shape, value) =>
+        fill(shape |> R.getShapeArray, value, D.dType |> dTypeToJs);
+      [@bs.module "@tensorflow/tfjs"]
+      external linspace :
+        (float, float, float) => Tensor(Rank1)(FloatDataType).t =
+        "";
+      [@bs.module "@tensorflow/tfjs"]
+      external oneHot :
+        (Tensor(Rank1)(IntDataType).t, int) => Tensor(Rank2)(FloatDataType).t =
+        "";
+      [@bs.module "@tensorflow/tfjs"]
+      external oneHotFloat :
+        (Tensor(Rank1)(IntDataType).t, int, float, float) =>
+        Tensor(Rank2)(FloatDataType).t =
+        "oneHot";
+      [@bs.module "@tensorflow/tfjs"]
+      external oneHotInt :
+        (Tensor(Rank1)(IntDataType).t, int, int, int) =>
+        Tensor(Rank2)(FloatDataType).t =
+        "oneHot";
+      [@bs.module "@tensorflow/tfjs"]
+      external ones : (array(int), string) => t = "";
+      let ones = shape =>
+        ones(shape |> R.getShapeArray, D.dType |> dTypeToJs);
+      [@bs.module "@tensorflow/tfjs"] external onesLike : t => t = "";
+      [@bs.module "@tensorflow/tfjs"]
+      external randomNormal : array(int) => Tensor(R)(FloatDataType).t = "";
+      let randomNormal = shape => shape |> R.getShapeArray |> randomNormal;
+      [@bs.module "@tensorflow/tfjs"]
+      external randomNormalWithOptions :
+        (array(int), float, float, string, float) =>
+        Tensor(R)(FloatDataType).t =
+        "randomNormal";
+      let randomNormalWithOptions = (shape, mean, stdDev, seed) =>
+        randomNormalWithOptions(
+          shape |> R.getShapeArray,
+          mean,
+          stdDev,
+          `float32 |> dTypeToJs,
+          seed,
+        );
+      [@bs.module "@tensorflow/tfjs"]
+      external randomUniform : array(int) => Tensor(R)(FloatDataType).t = "";
+      let randomUniform = shape => shape |> R.getShapeArray |> randomUniform;
+      [@bs.module "@tensorflow/tfjs"]
+      external randomUniformWithOptions :
+        (array(int), D.t, D.t, string) => Tensor(R)(D).t =
+        "randomUniform";
+      let randomUniformWithOptions = (shape, minval, maxval) =>
+        randomUniformWithOptions(
+          shape |> R.getShapeArray,
+          minval,
+          maxval,
+          D.dType |> dTypeToJs,
+        );
+      [@bs.module "@tensorflow/tfjs"]
+      external range : (int, int, int, string) => Tensor(Rank1)(IntDataType).t =
+        "";
+      let range = (start, stop, step) =>
+        range(start, stop, step, `int32 |> dTypeToJs);
+      [@bs.module "@tensorflow/tfjs"]
+      external rangeFloats :
+        (float, float, float, string) => Tensor(Rank1)(FloatDataType).t =
+        "range";
+      let rangeFloats = (start, stop, step) =>
+        rangeFloats(start, stop, step, `float32 |> dTypeToJs);
+      [@bs.module "@tensorflow/tfjs"]
+      external truncatedNormal :
+        (array(int), Js.Undefined.t(D.t), Js.Undefined.t(D.t), string) =>
+        Tensor(R)(D).t =
+        "";
+      let truncatedNormal = shape =>
+        truncatedNormal(
+          shape |> R.getShapeArray,
+          Js.Undefined.empty,
+          Js.Undefined.empty,
+          D.dType |> dTypeToJs,
+        );
+      [@bs.module "@tensorflow/tfjs"]
+      external truncatedNormalWithOptions :
+        (array(int), float, float, string, float) => Tensor(R)(D).t =
+        "truncatedNormal";
+      let truncatedNormalWithOptions = (shape, mean, stdDev, seed) =>
+        truncatedNormalWithOptions(
+          shape |> R.getShapeArray,
+          mean,
+          stdDev,
+          D.dType |> dTypeToJs,
+          seed,
+        );
+      [@bs.module "@tensorflow/tfjs"]
+      external variable : t => Variable(R)(D).t = "";
+      [@bs.module "@tensorflow/tfjs"]
+      external variableWithOptions : (t, bool, string) => Variable(R)(D).t =
+        "";
+      [@bs.module "@tensorflow/tfjs"]
+      external zeros : (array(int), string) => Tensor(R)(D).t = "";
+      let zeros = shape =>
+        zeros(shape |> R.getShapeArray, D.dType |> dTypeToJs);
+      [@bs.module "@tensorflow/tfjs"] external zerosLike : t => t = "";
+    };
     [@bs.send] external number : t => int = "";
     [@bs.send] external shape : t => ShapeRank.shapeFromTfjs = "";
     let shape = t => t |> shape |. ShapeRank.getShapeRank(R.rank);
