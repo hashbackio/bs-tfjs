@@ -306,6 +306,10 @@ module rec Tensor:
       let splitAlongAxis: (t, int, R.axis) => array(t);
       let splitMany: (t, array(int)) => array(t);
       let splitManyAlongAxis: (t, array(int), R.axis) => array(t);
+      let tile: (t, R.shape) => t;
+      /* TODO:
+         https://js.tensorflow.org/api/0.9.0/#stack
+         */
     };
     let data: t => Js.Promise.t(D.typedArray);
     let dataSync: t => D.typedArray;
@@ -555,6 +559,9 @@ module rec Tensor:
         |> R.axisToNonNegativeRank
         |> R.axisToJs
         |> splitManyAlongAxis(t, sizeOfSplits);
+      [@bs.module "@tensorflow/tfjs"]
+      external tile : (t, array(int)) => t = "";
+      let tile = (t, shape) => shape |> R.getShapeArray |> tile(t);
     };
     [@bs.send] external data : t => Js.Promise.t(D.typedArray) = "";
     [@bs.send] external dataSync : t => D.typedArray = "";
