@@ -113,66 +113,6 @@ and Rank4: Rank = {
   |];
 };
 
-module ShapeRank = {
-  type shapeFromTfjs;
-  type t =
-    | ShapeRank0(array(int))
-    | ShapeRank1(int)
-    | ShapeRank2(int, int)
-    | ShapeRank3(int, int, int)
-    | ShapeRank4(int, int, int, int);
-  external shapeFromTfjsToRank0 : shapeFromTfjs => array(int) = "%identity";
-  let shapeFromTfjsToRank1 = shapeFromTfjs =>
-    shapeFromTfjs |> shapeFromTfjsToRank0 |. Belt.Array.getUnsafe(0);
-  let shapeFromTfjsToRank2 = shapeFromTfjs =>
-    shapeFromTfjs
-    |> shapeFromTfjsToRank0
-    |> (
-      shapeArray => (
-        Belt.Array.getUnsafe(shapeArray, 0),
-        Belt.Array.getUnsafe(shapeArray, 1),
-      )
-    );
-  let shapeFromTfjsToRank3 = shapeFromTfjs =>
-    shapeFromTfjs
-    |> shapeFromTfjsToRank0
-    |> (
-      shapeArray => (
-        Belt.Array.getUnsafe(shapeArray, 0),
-        Belt.Array.getUnsafe(shapeArray, 1),
-        Belt.Array.getUnsafe(shapeArray, 2),
-      )
-    );
-  let shapeFromTfjsToRank4 = shapeFromTfjs =>
-    shapeFromTfjs
-    |> shapeFromTfjsToRank0
-    |> (
-      shapeArray => (
-        Belt.Array.getUnsafe(shapeArray, 0),
-        Belt.Array.getUnsafe(shapeArray, 1),
-        Belt.Array.getUnsafe(shapeArray, 2),
-        Belt.Array.getUnsafe(shapeArray, 3),
-      )
-    );
-  let getShapeRank = (shapeFromTfjs, rank: rank) =>
-    switch (rank) {
-    | `R0 => ShapeRank0(shapeFromTfjs |> shapeFromTfjsToRank0)
-    | `R1 => ShapeRank1(shapeFromTfjs |> shapeFromTfjsToRank1)
-    | `R2 =>
-      shapeFromTfjs
-      |> shapeFromTfjsToRank2
-      |> (((d1, d2)) => ShapeRank2(d1, d2))
-    | `R3 =>
-      shapeFromTfjs
-      |> shapeFromTfjsToRank3
-      |> (((d1, d2, d3)) => ShapeRank3(d1, d2, d3))
-    | `R4 =>
-      shapeFromTfjs
-      |> shapeFromTfjsToRank4
-      |> (((d1, d2, d3, d4)) => ShapeRank4(d1, d2, d3, d4))
-    };
-};
-
 [@bs.deriving jsConverter]
 type dType = [ | `float32 | `int32 | `bool];
 
