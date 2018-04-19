@@ -8,6 +8,8 @@ module type Rank = {
   type axis;
   let axisToJs: axis => int;
   let axisFromJs: int => option(axis);
+  let axisToInclusiveNegRankExclusiveRank: axis => axis;
+  let axisToNonNegativeRank: axis => axis;
   let getShapeArray: shape => array(int);
   let getPaddingArray: padding => array(array(int));
 };
@@ -19,6 +21,14 @@ module rec Rank0: Rank = {
   [@bs.deriving jsConverter]
   type axis =
     | [@bs.as 0] Default;
+  let axisToInclusiveNegRankExclusiveRank = axis =>
+    switch (axis) {
+    | Default => Default
+    };
+  let axisToNonNegativeRank = axis =>
+    switch (axis) {
+    | Default => Default
+    };
   let getShapeArray = () => [||];
   let getPaddingArray = () => [||];
 }
@@ -31,6 +41,18 @@ and Rank1: Rank = {
     | [@bs.as (-1)] ReversedX
     | [@bs.as 0] Default
     | [@bs.as 1] X;
+  let axisToInclusiveNegRankExclusiveRank = axis =>
+    switch (axis) {
+    | X => Default
+    | Default => Default
+    | ReversedX => ReversedX
+    };
+  let axisToNonNegativeRank = axis =>
+    switch (axis) {
+    | X => X
+    | Default => Default
+    | ReversedX => X
+    };
   let getShapeArray = x => [|x|];
   let getPaddingArray = ((paddingBefore, paddingAfter)) => [|
     [|paddingBefore, paddingAfter|],
@@ -47,6 +69,22 @@ and Rank2: Rank = {
     | [@bs.as 0] Default
     | [@bs.as 1] X
     | [@bs.as 2] Y;
+  let axisToInclusiveNegRankExclusiveRank = axis =>
+    switch (axis) {
+    | Y => X
+    | X => X
+    | Default => Default
+    | ReversedX => ReversedX
+    | ReversedY => ReversedY
+    };
+  let axisToNonNegativeRank = axis =>
+    switch (axis) {
+    | Y => Y
+    | X => X
+    | Default => Default
+    | ReversedX => X
+    | ReversedY => Y
+    };
   let getShapeArray = ((x, y)) => [|x, y|];
   let getPaddingArray =
       (((xPaddingBefore, xPaddingAfter), (yPaddingBefore, yPaddingAfter))) => [|
@@ -67,6 +105,26 @@ and Rank3: Rank = {
     | [@bs.as 1] X
     | [@bs.as 2] Y
     | [@bs.as 3] Z;
+  let axisToInclusiveNegRankExclusiveRank = axis =>
+    switch (axis) {
+    | Z => Y
+    | Y => Y
+    | X => X
+    | Default => Default
+    | ReversedX => ReversedX
+    | ReversedY => ReversedY
+    | ReversedZ => ReversedZ
+    };
+  let axisToNonNegativeRank = axis =>
+    switch (axis) {
+    | Z => Z
+    | Y => Y
+    | X => X
+    | Default => Default
+    | ReversedX => X
+    | ReversedY => Y
+    | ReversedZ => Z
+    };
   let getShapeArray = ((x, y, z)) => [|x, y, z|];
   let getPaddingArray =
       (
@@ -87,15 +145,39 @@ and Rank4: Rank = {
   type padding = ((int, int), (int, int), (int, int), (int, int));
   [@bs.deriving jsConverter]
   type axis =
-    | [@bs.as (-4)] T
-    | [@bs.as (-3)] Z
-    | [@bs.as (-2)] Y
-    | [@bs.as (-1)] X
+    | [@bs.as (-4)] ReversedT
+    | [@bs.as (-3)] ReversedZ
+    | [@bs.as (-2)] ReversedY
+    | [@bs.as (-1)] ReversedX
     | [@bs.as 0] Default
     | [@bs.as 1] X
     | [@bs.as 2] Y
     | [@bs.as 3] Z
     | [@bs.as 4] T;
+  let axisToInclusiveNegRankExclusiveRank = axis =>
+    switch (axis) {
+    | T => Z
+    | Z => Z
+    | Y => Y
+    | X => X
+    | Default => Default
+    | ReversedX => ReversedX
+    | ReversedY => ReversedY
+    | ReversedZ => ReversedZ
+    | ReversedT => ReversedT
+    };
+  let axisToNonNegativeRank = axis =>
+    switch (axis) {
+    | T => T
+    | Z => Z
+    | Y => Y
+    | X => X
+    | Default => Default
+    | ReversedX => X
+    | ReversedY => Y
+    | ReversedZ => Z
+    | ReversedT => T
+    };
   let getShapeArray = ((x, y, z, t)) => [|x, y, z, t|];
   let getPaddingArray =
       (
@@ -216,6 +298,14 @@ module rec Tensor:
       let concatAlongAxis: (array(t), R.axis) => t;
       let gather: (t, Tensor(Rank1)(IntDataType).t) => t;
       let gatherAlongAxis: (t, Tensor(Rank1)(IntDataType).t, R.axis) => t;
+      let reverse: t => t;
+      let reverseAlongAxis: (t, R.axis) => t;
+      let reverseAlongManyAxis: (t, list(R.axis)) => t;
+      let slice: (t, R.shape, R.shape) => t;
+      let split: (t, int) => array(t);
+      let splitAlongAxis: (t, int, R.axis) => array(t);
+      let splitMany: (t, array(int)) => array(t);
+      let splitManyAlongAxis: (t, array(int), R.axis) => array(t);
     };
     let data: t => Js.Promise.t(D.typedArray);
     let dataSync: t => D.typedArray;
@@ -426,6 +516,45 @@ module rec Tensor:
         "gather";
       let gatherAlongAxis = (t, indices, axis) =>
         axis |> R.axisToJs |> gatherAlongAxis(t, indices);
+      [@bs.module "@tensorflow/tfjs"] external reverse : t => t = "";
+      [@bs.module "@tensorflow/tfjs"]
+      external reverseAlongAxis : (t, int) => t = "reverse";
+      let reverseAlongAxis = (t, axis) =>
+        axis
+        |> R.axisToInclusiveNegRankExclusiveRank
+        |> R.axisToJs
+        |> reverseAlongAxis(t);
+      [@bs.module "@tensorflow/tfjs"]
+      external reverseAlongManyAxis : (t, array(int)) => t = "reverse";
+      let reverseAlongManyAxis = (t, manyAxis) =>
+        manyAxis
+        |. Belt.List.map(R.axisToInclusiveNegRankExclusiveRank)
+        |. Belt.List.map(R.axisToJs)
+        |> Belt.List.toArray
+        |> reverseAlongManyAxis(t);
+      [@bs.module "@tensorflow/tfjs"]
+      external slice : (t, array(int), array(int)) => t = "";
+      let slice = (t, start, size) =>
+        slice(t, start |> R.getShapeArray, size |> R.getShapeArray);
+      [@bs.module "@tensorflow/tfsj"]
+      external split : (t, int) => array(t) = "";
+      [@bs.module "@tensorflow/tfjs"]
+      external splitAlongAxis : (t, int, int) => array(t) = "split";
+      let splitAlongAxis = (t, numOfSplits, axis) =>
+        axis
+        |> R.axisToNonNegativeRank
+        |> R.axisToJs
+        |> splitAlongAxis(t, numOfSplits);
+      [@bs.module "@tensorflow/tfjs"]
+      external splitMany : (t, array(int)) => array(t) = "split";
+      [@bs.module "@tensorflow/tfjs"]
+      external splitManyAlongAxis : (t, array(int), int) => array(t) =
+        "split";
+      let splitManyAlongAxis = (t, sizeOfSplits, axis) =>
+        axis
+        |> R.axisToNonNegativeRank
+        |> R.axisToJs
+        |> splitManyAlongAxis(t, sizeOfSplits);
     };
     [@bs.send] external data : t => Js.Promise.t(D.typedArray) = "";
     [@bs.send] external dataSync : t => D.typedArray = "";
