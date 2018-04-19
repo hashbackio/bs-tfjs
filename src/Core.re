@@ -28,6 +28,7 @@ and Rank1: Rank = {
   type padding = (int, int);
   [@bs.deriving jsConverter]
   type axis =
+    | [@bs.as (-1)] ReversedX
     | [@bs.as 0] Default
     | [@bs.as 1] X;
   let getShapeArray = x => [|x|];
@@ -41,9 +42,11 @@ and Rank2: Rank = {
   type padding = ((int, int), (int, int));
   [@bs.deriving jsConverter]
   type axis =
+    | [@bs.as (-2)] ReversedY
+    | [@bs.as (-1)] ReversedX
     | [@bs.as 0] Default
     | [@bs.as 1] X
-    | [@bs.as 1] Y;
+    | [@bs.as 2] Y;
   let getShapeArray = ((x, y)) => [|x, y|];
   let getPaddingArray =
       (((xPaddingBefore, xPaddingAfter), (yPaddingBefore, yPaddingAfter))) => [|
@@ -57,10 +60,13 @@ and Rank3: Rank = {
   type padding = ((int, int), (int, int), (int, int));
   [@bs.deriving jsConverter]
   type axis =
+    | [@bs.as (-3)] ReversedZ
+    | [@bs.as (-2)] ReversedY
+    | [@bs.as (-1)] ReversedX
     | [@bs.as 0] Default
     | [@bs.as 1] X
-    | [@bs.as 1] Y
-    | [@bs.as 1] Z;
+    | [@bs.as 2] Y
+    | [@bs.as 3] Z;
   let getShapeArray = ((x, y, z)) => [|x, y, z|];
   let getPaddingArray =
       (
@@ -81,11 +87,15 @@ and Rank4: Rank = {
   type padding = ((int, int), (int, int), (int, int), (int, int));
   [@bs.deriving jsConverter]
   type axis =
+    | [@bs.as (-4)] T
+    | [@bs.as (-3)] Z
+    | [@bs.as (-2)] Y
+    | [@bs.as (-1)] X
     | [@bs.as 0] Default
     | [@bs.as 1] X
-    | [@bs.as 1] Y
-    | [@bs.as 1] Z
-    | [@bs.as 1] T;
+    | [@bs.as 2] Y
+    | [@bs.as 3] Z
+    | [@bs.as 4] T;
   let getShapeArray = ((x, y, z, t)) => [|x, y, z, t|];
   let getPaddingArray =
       (
