@@ -5,6 +5,9 @@ module type Rank = {
   let rank: rank;
   type shape;
   type padding;
+  type axis;
+  let axisToJs: axis => int;
+  let axisFromJs: int => option(axis);
   let getShapeArray: shape => array(int);
   let getPaddingArray: padding => array(array(int));
 };
@@ -13,6 +16,9 @@ module rec Rank0: Rank = {
   let rank = `R0;
   type shape = unit;
   type padding = unit;
+  [@bs.deriving jsConverter]
+  type axis =
+    | [@bs.as 0] Default;
   let getShapeArray = () => [||];
   let getPaddingArray = () => [||];
 }
@@ -20,6 +26,10 @@ and Rank1: Rank = {
   let rank = `R1;
   type shape = int;
   type padding = (int, int);
+  [@bs.deriving jsConverter]
+  type axis =
+    | [@bs.as 0] Default
+    | [@bs.as 1] X;
   let getShapeArray = x => [|x|];
   let getPaddingArray = ((paddingBefore, paddingAfter)) => [|
     [|paddingBefore, paddingAfter|],
@@ -29,6 +39,11 @@ and Rank2: Rank = {
   let rank = `R2;
   type shape = (int, int);
   type padding = ((int, int), (int, int));
+  [@bs.deriving jsConverter]
+  type axis =
+    | [@bs.as 0] Default
+    | [@bs.as 1] X
+    | [@bs.as 1] Y;
   let getShapeArray = ((x, y)) => [|x, y|];
   let getPaddingArray =
       (((xPaddingBefore, xPaddingAfter), (yPaddingBefore, yPaddingAfter))) => [|
@@ -40,6 +55,12 @@ and Rank3: Rank = {
   let rank = `R3;
   type shape = (int, int, int);
   type padding = ((int, int), (int, int), (int, int));
+  [@bs.deriving jsConverter]
+  type axis =
+    | [@bs.as 0] Default
+    | [@bs.as 1] X
+    | [@bs.as 1] Y
+    | [@bs.as 1] Z;
   let getShapeArray = ((x, y, z)) => [|x, y, z|];
   let getPaddingArray =
       (
@@ -58,6 +79,13 @@ and Rank4: Rank = {
   let rank = `R4;
   type shape = (int, int, int, int);
   type padding = ((int, int), (int, int), (int, int), (int, int));
+  [@bs.deriving jsConverter]
+  type axis =
+    | [@bs.as 0] Default
+    | [@bs.as 1] X
+    | [@bs.as 1] Y
+    | [@bs.as 1] Z
+    | [@bs.as 1] T;
   let getShapeArray = ((x, y, z, t)) => [|x, y, z, t|];
   let getPaddingArray =
       (
@@ -232,6 +260,10 @@ module rec Tensor:
          https://js.tensorflow.org/api/0.9.0/#buffer
          https://js.tensorflow.org/api/0.9.0/#squeeze
          */
+    };
+    module Operation: {
+      let concat: array(t) => t;
+      let concatAlongAxis: (array(t), R.axis) => t;
     };
     let data: t => Js.Promise.t(D.typedArray);
     let dataSync: t => D.typedArray;
@@ -428,6 +460,13 @@ module rec Tensor:
       [@bs.send] external toFloat : t => Tensor(R)(FloatDataType).t = "";
       [@bs.send] external toInt : t => Tensor(R)(IntDataType).t = "";
       [@bs.send] external toBool : t => Tensor(R)(BoolDataType).t = "";
+    };
+    module Operation = {
+      [@bs.module "@tensorflow/tfjs"] external concat : array(t) => t = "";
+      [@bs.module "@tensorflow/tfjs"]
+      external concatAlongAxis : (array(t), int) => t = "concat";
+      let concatAlongAxis = (ts, axis) =>
+        axis |> R.axisToJs |> concatAlongAxis(ts);
     };
     [@bs.send] external data : t => Js.Promise.t(D.typedArray) = "";
     [@bs.send] external dataSync : t => D.typedArray = "";
