@@ -274,6 +274,8 @@ module rec Tensor:
     module Operation: {
       let concat: array(t) => t;
       let concatAlongAxis: (array(t), R.axis) => t;
+      let gather: (t, Tensor(Rank1)(IntDataType).t) => t;
+      let gatherAlongAxis: (t, Tensor(Rank1)(IntDataType).t, R.axis) => t;
     };
     let data: t => Js.Promise.t(D.typedArray);
     let dataSync: t => D.typedArray;
@@ -477,6 +479,13 @@ module rec Tensor:
       external concatAlongAxis : (array(t), int) => t = "concat";
       let concatAlongAxis = (ts, axis) =>
         axis |> R.axisToJs |> concatAlongAxis(ts);
+      [@bs.module "@tensorflow/tfjs"]
+      external gather : (t, Tensor(Rank1)(IntDataType).t) => t = "";
+      [@bs.module "@tensorflow/tfjs"]
+      external gatherAlongAxis : (t, Tensor(Rank1)(IntDataType).t, int) => t =
+        "gather";
+      let gatherAlongAxis = (t, indices, axis) =>
+        axis |> R.axisToJs |> gatherAlongAxis(t, indices);
     };
     [@bs.send] external data : t => Js.Promise.t(D.typedArray) = "";
     [@bs.send] external dataSync : t => D.typedArray = "";
