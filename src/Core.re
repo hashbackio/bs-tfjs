@@ -14,7 +14,7 @@ module type Rank = {
   let getPaddingArray: padding => array(array(int));
 };
 
-module rec Rank0: Rank = {
+module Rank0: Rank = {
   let rank = `R0;
   type shape = unit;
   type padding = unit;
@@ -31,8 +31,9 @@ module rec Rank0: Rank = {
     };
   let getShapeArray = () => [||];
   let getPaddingArray = () => [||];
-}
-and Rank1: Rank = {
+};
+
+module Rank1: Rank = {
   let rank = `R1;
   type shape = int;
   type padding = (int, int);
@@ -57,8 +58,9 @@ and Rank1: Rank = {
   let getPaddingArray = ((paddingBefore, paddingAfter)) => [|
     [|paddingBefore, paddingAfter|],
   |];
-}
-and Rank2: Rank = {
+};
+
+module Rank2: Rank = {
   let rank = `R2;
   type shape = (int, int);
   type padding = ((int, int), (int, int));
@@ -91,8 +93,9 @@ and Rank2: Rank = {
     [|xPaddingBefore, xPaddingAfter|],
     [|yPaddingBefore, yPaddingAfter|],
   |];
-}
-and Rank3: Rank = {
+};
+
+module Rank3: Rank = {
   let rank = `R3;
   type shape = (int, int, int);
   type padding = ((int, int), (int, int), (int, int));
@@ -138,8 +141,9 @@ and Rank3: Rank = {
     [|yPaddingBefore, yPaddingAfter|],
     [|zPaddingBefore, zPaddingAfter|],
   |];
-}
-and Rank4: Rank = {
+};
+
+module Rank4: Rank = {
   let rank = `R4;
   type shape = (int, int, int, int);
   type padding = ((int, int), (int, int), (int, int), (int, int));
