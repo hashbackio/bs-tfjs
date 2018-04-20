@@ -1,21 +1,26 @@
 [@bs.deriving jsConverter]
 type rank = [ | `R0 | `R1 | `R2 | `R3 | `R4];
 
-module type Rank = {
-  let rank: rank;
-  type shape;
-  type padding;
-  type axis;
-  let axisToJs: axis => int;
-  let axisFromJs: int => option(axis);
-  let axisToInclusiveNegRankExclusiveRank: axis => axis;
-  let axisToNonNegativeRank: axis => axis;
-  let getShapeArray: shape => array(int);
-  let getPaddingArray: padding => array(array(int));
-};
+module rec Rank: {
+  module type S = {
+    type shape;
+    type padding;
+    type axis;
+    let axisToJs: axis => int;
+    let axisFromJs: int => option(axis);
+    let axisToInclusiveNegRankExclusiveRank: axis => axis;
+    let axisToNonNegativeRank: axis => axis;
+    let getShapeArray: shape => array(int);
+    let getPaddingArray: padding => array(array(int));
+    let getRankString: unit => string;
+    let downRank: unit => (module Rank.S);
+    let upRank: unit => (module Rank.S);
+  };
+} = Rank;
 
-module rec Rank0: Rank = {
-  let rank = `R0;
+module rec Rank0: Rank.S = {
+  let downRank: unit => (module Rank.S) = () => (module Rank0);
+  let upRank: unit => (module Rank.S) = () => (module Rank1);
   type shape = unit;
   type padding = unit;
   [@bs.deriving jsConverter]
@@ -31,9 +36,11 @@ module rec Rank0: Rank = {
     };
   let getShapeArray = () => [||];
   let getPaddingArray = () => [||];
+  let getRankString = () => `R0 |> rankToJs;
 }
-and Rank1: Rank = {
-  let rank = `R1;
+and Rank1: Rank.S = {
+  let downRank: unit => (module Rank.S) = () => (module Rank0);
+  let upRank: unit => (module Rank.S) = () => (module Rank2);
   type shape = int;
   type padding = (int, int);
   [@bs.deriving jsConverter]
@@ -57,9 +64,11 @@ and Rank1: Rank = {
   let getPaddingArray = ((paddingBefore, paddingAfter)) => [|
     [|paddingBefore, paddingAfter|],
   |];
+  let getRankString = () => `R1 |> rankToJs;
 }
-and Rank2: Rank = {
-  let rank = `R2;
+and Rank2: Rank.S = {
+  let downRank: unit => (module Rank.S) = () => (module Rank1);
+  let upRank: unit => (module Rank.S) = () => (module Rank3);
   type shape = (int, int);
   type padding = ((int, int), (int, int));
   [@bs.deriving jsConverter]
@@ -91,9 +100,11 @@ and Rank2: Rank = {
     [|xPaddingBefore, xPaddingAfter|],
     [|yPaddingBefore, yPaddingAfter|],
   |];
+  let getRankString = () => `R2 |> rankToJs;
 }
-and Rank3: Rank = {
-  let rank = `R3;
+and Rank3: Rank.S = {
+  let downRank: unit => (module Rank.S) = () => (module Rank2);
+  let upRank: unit => (module Rank.S) = () => (module Rank4);
   type shape = (int, int, int);
   type padding = ((int, int), (int, int), (int, int));
   [@bs.deriving jsConverter]
@@ -138,9 +149,11 @@ and Rank3: Rank = {
     [|yPaddingBefore, yPaddingAfter|],
     [|zPaddingBefore, zPaddingAfter|],
   |];
+  let getRankString = () => `R3 |> rankToJs;
 }
-and Rank4: Rank = {
-  let rank = `R4;
+and Rank4: Rank.S = {
+  let downRank: unit => (module Rank.S) = () => (module Rank3);
+  let upRank: unit => (module Rank.S) = () => (module Rank4);
   type shape = (int, int, int, int);
   type padding = ((int, int), (int, int), (int, int), (int, int));
   [@bs.deriving jsConverter]
@@ -193,6 +206,7 @@ and Rank4: Rank = {
     [|zPaddingBefore, zPaddingAfter|],
     [|tPaddingBefore, tPaddingAfter|],
   |];
+  let getRankString = () => `R4 |> rankToJs;
 };
 
 [@bs.deriving jsConverter]
@@ -218,7 +232,7 @@ module BoolDataType: DataType = {
   type typedArray = Js.Typed_array.Uint32Array.t;
 };
 
-module Variable = (R: Rank, D: DataType) => {
+module Variable = (R: Rank.S, D: DataType) => {
   type t;
   type dataId;
   type typedArray = D.typedArray;
@@ -226,7 +240,7 @@ module Variable = (R: Rank, D: DataType) => {
 };
 
 module rec Tensor:
-  (R: Rank, D: DataType) =>
+  (R: Rank.S, D: DataType) =>
   {
     type t;
     type dataId;
@@ -322,7 +336,7 @@ module rec Tensor:
        https://js.tensorflow.org/api/0.9.0/#tf.Tensor.buffer
        */
   } =
-  (R: Rank, D: DataType) => {
+  (R: Rank.S, D: DataType) => {
     type t;
     type dataId;
     type typedArray = D.typedArray;
