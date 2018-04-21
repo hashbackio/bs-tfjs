@@ -27,8 +27,44 @@ module ContainerConfig = {
     );
 };
 
+module InputConfig = (R: Core.Rank, D: Core.DataType) => {
+  type t = {
+    shape: option(R.inputShape),
+    batchShape: option(R.shape),
+    name: option(string),
+    sparse: option(bool),
+  };
+  let encode = ({shape, batchShape, name, sparse}) =>
+    Json.Encode.(
+      object_([
+        (
+          "shape",
+          shape
+          |> Js.Option.map((. x) => x |> R.getInputShapeArray)
+          |> nullable(array(int)),
+        ),
+        (
+          "batchShape",
+          batchShape
+          |> Js.Option.map((. x) => x |> R.getShapeArray)
+          |> nullable(array(int)),
+        ),
+        ("name", name |> nullable(string)),
+        ("dtype", D.dType |> Core.dTypeToJs |> string),
+        ("sparse", sparse |> nullable(bool)),
+      ])
+    );
+};
+
 type model;
 
 [@bs.module "@tensorflow/tfjs"] external make : Js.Json.t => model = "model";
 
 let make = config => config |> ContainerConfig.encode |> make;
+
+module Input = (R: Core.Rank, D: Core.DataType) => {
+  module InputConfig = InputConfig(R, D);
+  [@bs.module "@tensorflow/tfjs"]
+  external input : Js.Json.t => SymbolicTensor.t = "";
+  let input = inputConfig => inputConfig |> InputConfig.encode |> input;
+};

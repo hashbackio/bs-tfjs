@@ -4,6 +4,7 @@ type rank = [ | `R0 | `R1 | `R2 | `R3 | `R4];
 module type Rank = {
   let rank: rank;
   type shape;
+  type inputShape;
   type padding;
   type axis;
   let axisToJs: axis => int;
@@ -11,12 +12,14 @@ module type Rank = {
   let axisToInclusiveNegRankExclusiveRank: axis => axis;
   let axisToNonNegativeRank: axis => axis;
   let getShapeArray: shape => array(int);
+  let getInputShapeArray: inputShape => array(int);
   let getPaddingArray: padding => array(array(int));
 };
 
 module Rank0: Rank = {
   let rank = `R0;
   type shape = unit;
+  type inputShape = unit;
   type padding = unit;
   [@bs.deriving jsConverter]
   type axis =
@@ -30,12 +33,14 @@ module Rank0: Rank = {
     | Default => Default
     };
   let getShapeArray = () => [||];
+  let getInputShapeArray = () => [||];
   let getPaddingArray = () => [||];
 };
 
 module Rank1: Rank = {
   let rank = `R1;
   type shape = int;
+  type inputShape = unit;
   type padding = (int, int);
   [@bs.deriving jsConverter]
   type axis =
@@ -55,6 +60,7 @@ module Rank1: Rank = {
     | ReversedX => X
     };
   let getShapeArray = x => [|x|];
+  let getInputShapeArray = () => [||];
   let getPaddingArray = ((paddingBefore, paddingAfter)) => [|
     [|paddingBefore, paddingAfter|],
   |];
@@ -63,6 +69,7 @@ module Rank1: Rank = {
 module Rank2: Rank = {
   let rank = `R2;
   type shape = (int, int);
+  type inputShape = int;
   type padding = ((int, int), (int, int));
   [@bs.deriving jsConverter]
   type axis =
@@ -88,6 +95,7 @@ module Rank2: Rank = {
     | ReversedY => Y
     };
   let getShapeArray = ((x, y)) => [|x, y|];
+  let getInputShapeArray = x => [|x|];
   let getPaddingArray =
       (((xPaddingBefore, xPaddingAfter), (yPaddingBefore, yPaddingAfter))) => [|
     [|xPaddingBefore, xPaddingAfter|],
@@ -98,6 +106,7 @@ module Rank2: Rank = {
 module Rank3: Rank = {
   let rank = `R3;
   type shape = (int, int, int);
+  type inputShape = (int, int);
   type padding = ((int, int), (int, int), (int, int));
   [@bs.deriving jsConverter]
   type axis =
@@ -129,6 +138,7 @@ module Rank3: Rank = {
     | ReversedZ => Z
     };
   let getShapeArray = ((x, y, z)) => [|x, y, z|];
+  let getInputShapeArray = ((x, y)) => [|x, y|];
   let getPaddingArray =
       (
         (
@@ -146,6 +156,7 @@ module Rank3: Rank = {
 module Rank4: Rank = {
   let rank = `R4;
   type shape = (int, int, int, int);
+  type inputShape = (int, int, int);
   type padding = ((int, int), (int, int), (int, int), (int, int));
   [@bs.deriving jsConverter]
   type axis =
@@ -183,6 +194,7 @@ module Rank4: Rank = {
     | ReversedT => T
     };
   let getShapeArray = ((x, y, z, t)) => [|x, y, z, t|];
+  let getInputShapeArray = ((x, y, z)) => [|x, y, z|];
   let getPaddingArray =
       (
         (
