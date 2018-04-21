@@ -579,32 +579,42 @@ module rec Tensor:
       "toString";
   };
 
-module FloatScalar = Tensor(Rank0, FloatDataType);
+module Scalar = Tensor(Rank0);
 
-module IntScalar = Tensor(Rank0, IntDataType);
+module FloatScalar = Scalar(FloatDataType);
 
-module BoolScalar = Tensor(Rank0, BoolDataType);
+module IntScalar = Scalar(IntDataType);
 
-module FloatTensor1D = Tensor(Rank1, FloatDataType);
+module BoolScalar = Scalar(BoolDataType);
 
-module IntTensor1D = Tensor(Rank1, IntDataType);
+module Tensor1D = Tensor(Rank1);
 
-module BoolTensor1D = Tensor(Rank1, BoolDataType);
+module FloatTensor1D = Tensor1D(FloatDataType);
 
-module FloatTensor2D = Tensor(Rank2, FloatDataType);
+module IntTensor1D = Tensor1D(IntDataType);
 
-module IntTensor2D = Tensor(Rank2, IntDataType);
+module BoolTensor1D = Tensor1D(BoolDataType);
 
-module BoolTensor2D = Tensor(Rank2, BoolDataType);
+module Tensor2D = Tensor(Rank2);
 
-module FloatTensor3D = Tensor(Rank3, FloatDataType);
+module FloatTensor2D = Tensor2D(FloatDataType);
 
-module IntTensor3D = Tensor(Rank3, IntDataType);
+module IntTensor2D = Tensor2D(IntDataType);
 
-module BoolTensor3D = Tensor(Rank3, BoolDataType);
+module BoolTensor2D = Tensor2D(BoolDataType);
 
-module FloatTensor4D = Tensor(Rank4, FloatDataType);
+module Tensor3D = Tensor(Rank3);
 
-module IntTensor4D = Tensor(Rank4, IntDataType);
+module FloatTensor3D = Tensor3D(FloatDataType);
 
-module BoolTensor4D = Tensor(Rank4, BoolDataType);
+module IntTensor3D = Tensor3D(IntDataType);
+
+module BoolTensor3D = Tensor3D(BoolDataType);
+
+module Tensor4D = Tensor(Rank4);
+
+module FloatTensor4D = Tensor4D(FloatDataType);
+
+module IntTensor4D = Tensor4D(IntDataType);
+
+module BoolTensor4D = Tensor4D(BoolDataType);
