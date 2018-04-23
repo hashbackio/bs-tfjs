@@ -1,4 +1,4 @@
-module SymbolicTensor = {
+module SymbolicTensor = (R: Core.Rank, D: Core.DataType) => {
   type t;
   type ts =
     | Single(t)
@@ -11,7 +11,8 @@ module SymbolicTensor = {
     };
 };
 
-module ContainerConfig = {
+module ContainerConfig = (R: Core.Rank, D: Core.DataType) => {
+  module SymbolicTensor = SymbolicTensor(R, D);
   type t = {
     inputs: SymbolicTensor.ts,
     outputs: SymbolicTensor.ts,
@@ -56,18 +57,18 @@ module InputConfig = (R: Core.Rank, D: Core.DataType) => {
     );
 };
 
-type model;
-
-[@bs.module "@tensorflow/tfjs"] external make : Js.Json.t => model = "model";
-
-let make = config => config |> ContainerConfig.encode |> make;
-
-[@bs.module "@tensorflow/tfjs"]
-external loadModel : string => Js.Promise.t(model) = "";
-
-module Input = (R: Core.Rank, D: Core.DataType) => {
-  module InputConfig = InputConfig(R, D);
+module Model = (R: Core.Rank, D: Core.DataType) => {
+  module ContainerConfig = ContainerConfig(R, D);
+  module SymbolicTensor = SymbolicTensor(R, D);
+  type model;
+  [@bs.module "@tensorflow/tfjs"] external make : Js.Json.t => model = "model";
+  let make = config => config |> ContainerConfig.encode |> make;
   [@bs.module "@tensorflow/tfjs"]
-  external input : Js.Json.t => SymbolicTensor.t = "";
-  let input = inputConfig => inputConfig |> InputConfig.encode |> input;
+  external loadModel : string => Js.Promise.t(model) = "";
+  module Input = (R: Core.Rank, D: Core.DataType) => {
+    module InputConfig = InputConfig(R, D);
+    [@bs.module "@tensorflow/tfjs"]
+    external input : Js.Json.t => SymbolicTensor.t = "";
+    let input = inputConfig => inputConfig |> InputConfig.encode |> input;
+  };
 };

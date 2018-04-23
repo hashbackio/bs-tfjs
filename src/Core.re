@@ -11,6 +11,7 @@ module type Rank = {
   let axisFromJs: int => option(axis);
   let axisToInclusiveNegRankExclusiveRank: axis => axis;
   let axisToNonNegativeRank: axis => axis;
+  let axisToNegOneDefaultRank: axis => axis;
   let getShapeArray: shape => array(int);
   let getInputShapeArray: inputShape => array(int);
   let getPaddingArray: padding => array(array(int));
@@ -29,6 +30,11 @@ module Rank0: Rank = {
     | Default => Default
     };
   let axisToNonNegativeRank = axis =>
+    switch (axis) {
+    | Default => Default
+    };
+  /* TODO: I don't really know what to do here,  */
+  let axisToNegOneDefaultRank = axis =>
     switch (axis) {
     | Default => Default
     };
@@ -58,6 +64,12 @@ module Rank1: Rank = {
     | X => X
     | Default => Default
     | ReversedX => X
+    };
+  let axisToNegOneDefaultRank = axis =>
+    switch (axis) {
+    | X => X
+    | Default => ReversedX
+    | ReversedX => ReversedX
     };
   let getShapeArray = x => [|x|];
   let getInputShapeArray = () => [||];
@@ -93,6 +105,14 @@ module Rank2: Rank = {
     | Default => Default
     | ReversedX => X
     | ReversedY => Y
+    };
+  let axisToNegOneDefaultRank = axis =>
+    switch (axis) {
+    | Y => Y
+    | X => X
+    | Default => ReversedX
+    | ReversedX => ReversedX
+    | ReversedY => ReversedX
     };
   let getShapeArray = ((x, y)) => [|x, y|];
   let getInputShapeArray = x => [|x|];
@@ -136,6 +156,16 @@ module Rank3: Rank = {
     | ReversedX => X
     | ReversedY => Y
     | ReversedZ => Z
+    };
+  let axisToNegOneDefaultRank = axis =>
+    switch (axis) {
+    | Z => Z
+    | Y => Y
+    | X => X
+    | Default => ReversedX
+    | ReversedX => ReversedX
+    | ReversedY => ReversedX
+    | ReversedZ => ReversedX
     };
   let getShapeArray = ((x, y, z)) => [|x, y, z|];
   let getInputShapeArray = ((x, y)) => [|x, y|];
@@ -192,6 +222,18 @@ module Rank4: Rank = {
     | ReversedY => Y
     | ReversedZ => Z
     | ReversedT => T
+    };
+  let axisToNegOneDefaultRank = axis =>
+    switch (axis) {
+    | T => T
+    | Z => Z
+    | Y => Y
+    | X => X
+    | Default => ReversedX
+    | ReversedX => ReversedX
+    | ReversedY => ReversedX
+    | ReversedZ => ReversedX
+    | ReversedT => ReversedX
     };
   let getShapeArray = ((x, y, z, t)) => [|x, y, z, t|];
   let getInputShapeArray = ((x, y, z)) => [|x, y, z|];
