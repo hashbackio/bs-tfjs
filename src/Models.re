@@ -62,6 +62,9 @@ type model;
 
 let make = config => config |> ContainerConfig.encode |> make;
 
+[@bs.module "@tensorflow/tfjs"]
+external loadModel : string => Js.Promise.t(model) = "";
+
 module Input = (R: Core.Rank, D: Core.DataType) => {
   module InputConfig = InputConfig(R, D);
   [@bs.module "@tensorflow/tfjs"]
