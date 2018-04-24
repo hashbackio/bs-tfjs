@@ -23,8 +23,8 @@ module Initializer = (R: Core.Rank, D: Core.DataType) => {
     | VarianceScaling
     | Zeros
     | Initializer(t);
-  let regularizerTypeToJs = regularizerType =>
-    switch (regularizerType) {
+  let initializerTypeToJs = initializerType =>
+    switch (initializerType) {
     | Constant => "constant" |> unsafeToFfi
     | GlorotNormal => "glorotNormal" |> unsafeToFfi
     | GlorotUniform => "glorotUniform" |> unsafeToFfi
