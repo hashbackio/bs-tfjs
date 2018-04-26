@@ -681,3 +681,70 @@ module Convolutional = (D: Core.DataType) => {
     }
     |> separableConv2d;
 };
+
+module Merge = (R: Core.Rank, D: Core.DataType) => {
+  module Layer = Layer(R, R, D);
+  type configFfi = {
+    .
+    "inputShape": Js.Undefined.t(array(int)),
+    "batchInputShape": Js.Undefined.t(array(int)),
+    "batchSize": Js.Undefined.t(int),
+    "dtype": Js.Undefined.t(string),
+    "name": Js.Undefined.t(string),
+    "trainable": Js.Undefined.t(bool),
+    "updatable": Js.Undefined.t(bool),
+  };
+  let callFnWithConfigObject =
+      (
+        fn,
+        ~inputShape=?,
+        ~batchInputShape=?,
+        ~batchSize=?,
+        ~dtype=?,
+        ~name=?,
+        ~trainable=?,
+        ~updatable=?,
+        (),
+      ) =>
+    {
+      "inputShape":
+        inputShape
+        |. Belt.Option.map(R.getShapeArray)
+        |> Js.Undefined.fromOption,
+      "batchInputShape":
+        batchInputShape
+        |. Belt.Option.map(R.getInputShapeArray)
+        |> Js.Undefined.fromOption,
+      "batchSize": batchSize |> Js.Undefined.fromOption,
+      "dtype":
+        dtype |. Belt.Option.map(Core.dTypeToJs) |> Js.Undefined.fromOption,
+      "name": name |> Js.Undefined.fromOption,
+      "trainable": trainable |> Js.Undefined.fromOption,
+      "updatable": updatable |> Js.Undefined.fromOption,
+    }
+    |> Js.Undefined.return
+    |> fn;
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external add : Js.Undefined.t(configFfi) => Layer.t = "";
+  let add = callFnWithConfigObject(add);
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external average : Js.Undefined.t(configFfi) => Layer.t = "";
+  let average = callFnWithConfigObject(average);
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external concatenate :
+    Js.Undefined.t({. "axis": Js.Undefined.t(int)}) => Layer.t =
+    "";
+  let concatenate = (~axis=?, ()) =>
+    {"axis": axis |. Belt.Option.map(R.axisToJs) |> Js.Undefined.fromOption}
+    |> Js.Undefined.return
+    |> concatenate;
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external maximum : Js.Undefined.t(configFfi) => Layer.t = "";
+  let maximum = callFnWithConfigObject(maximum);
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external minimum : Js.Undefined.t(configFfi) => Layer.t = "";
+  let minimum = callFnWithConfigObject(minimum);
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external multiply : Js.Undefined.t(configFfi) => Layer.t = "";
+  let multiply = callFnWithConfigObject(multiply);
+};
