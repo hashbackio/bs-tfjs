@@ -13,6 +13,12 @@ type activationType = [
   | `tanh
 ];
 
+[@bs.deriving jsConverter]
+type padding = [ | `valid | `same | `casual];
+
+[@bs.deriving jsConverter]
+type dataFormat = [ | `channelsFirst | `channelsLast];
+
 module Layer = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
   module SymbolicTensorIn = Models.SymbolicTensor(Rin, D);
   module SymbolicTensorOut = Models.SymbolicTensor(Rout, D);
@@ -23,6 +29,150 @@ module Layer = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
   external applyMany :
     (t, array(SymbolicTensorIn.t)) => array(SymbolicTensorOut.t) =
     "apply";
+};
+
+module Configs = (R: Core.Rank, D: Core.DataType) => {
+  module Initializer = Initializers.Initializer(R, D);
+  type inputConfig = {
+    .
+    "inputShape": Js.Undefined.t(array(int)),
+    "batchInputShape": Js.Undefined.t(array(int)),
+    "batchSize": Js.Undefined.t(int),
+    "dtype": Js.Undefined.t(string),
+    "name": Js.Undefined.t(string),
+    "trainable": Js.Undefined.t(bool),
+    "updatable": Js.Undefined.t(bool),
+  };
+  type normalizeConfig = {
+    .
+    "axis": Js.Undefined.t(int),
+    "momentum": Js.Undefined.t(float),
+    "epsilon": Js.Undefined.t(float),
+    "center": Js.Undefined.t(bool),
+    "scale": Js.Undefined.t(bool),
+    "betaInitializer": Js.Undefined.t(Initializer.ffi),
+    "gammaInitializer": Js.Undefined.t(Initializer.ffi),
+    "movingMeanInitializer": Js.Undefined.t(Initializer.ffi),
+    "movingVarianceInitializer": Js.Undefined.t(Initializer.ffi),
+    "betaConstraint": Js.Undefined.t(Constraints.ffi),
+    "gammaConstraint": Js.Undefined.t(Constraints.ffi),
+    "betaRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "gammaRegularizer": Js.Undefined.t(Regularizers.ffi),
+  };
+  type poolingConfig = {
+    .
+    "poolSize": Js.Undefined.t(int),
+    "strides": Js.Undefined.t(int),
+    "padding": Js.Undefined.t(string),
+    "dataFormat": Js.Undefined.t(string),
+  };
+  let callFnWithInputConfig =
+      (
+        fn,
+        ~inputShape=?,
+        ~batchInputShape=?,
+        ~batchSize=?,
+        ~dtype=?,
+        ~name=?,
+        ~trainable=?,
+        ~updatable=?,
+        (),
+      ) =>
+    {
+      "inputShape":
+        inputShape
+        |. Belt.Option.map(R.getShapeArray)
+        |> Js.Undefined.fromOption,
+      "batchInputShape":
+        batchInputShape
+        |. Belt.Option.map(R.getInputShapeArray)
+        |> Js.Undefined.fromOption,
+      "batchSize": batchSize |> Js.Undefined.fromOption,
+      "dtype":
+        dtype |. Belt.Option.map(Core.dTypeToJs) |> Js.Undefined.fromOption,
+      "name": name |> Js.Undefined.fromOption,
+      "trainable": trainable |> Js.Undefined.fromOption,
+      "updatable": updatable |> Js.Undefined.fromOption,
+    }
+    |> Js.Undefined.return
+    |> fn;
+  let callFnWithNormalizeConfig =
+      (
+        fn,
+        ~axis=?,
+        ~momentum=?,
+        ~epsilon=?,
+        ~center=?,
+        ~scale=?,
+        ~betaInitializer=?,
+        ~gammaInitializer=?,
+        ~movingMeanInitializer=?,
+        ~movingVarianceInitializer=?,
+        ~betaConstraint=?,
+        ~gammaConstraint=?,
+        ~betaRegularizer=?,
+        ~gammaRegularizer=?,
+        (),
+      ) =>
+    {
+      "axis":
+        axis
+        |. Belt.Option.map(R.axisToNegOneDefaultRank)
+        |. Belt.Option.map(R.axisToJs)
+        |> Js.Undefined.fromOption,
+      "momentum": momentum |> Js.Undefined.fromOption,
+      "epsilon": epsilon |> Js.Undefined.fromOption,
+      "center": center |> Js.Undefined.fromOption,
+      "scale": scale |> Js.Undefined.fromOption,
+      "betaInitializer":
+        betaInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "gammaInitializer":
+        gammaInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "movingMeanInitializer":
+        movingMeanInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "movingVarianceInitializer":
+        movingVarianceInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "betaConstraint":
+        betaConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "gammaConstraint":
+        gammaConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "betaRegularizer":
+        betaRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "gammaRegularizer":
+        gammaRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+    }
+    |> Js.Undefined.return
+    |> fn;
+  let callFnWithPoolingConfig =
+      (fn, ~poolSize=?, ~strides=?, ~padding=?, ~dataFormat=?, ()) =>
+    {
+      "poolSize": poolSize |> Js.Undefined.fromOption,
+      "strides": strides |> Js.Undefined.fromOption,
+      "padding":
+        padding |. Belt.Option.map(paddingToJs) |> Js.Undefined.fromOption,
+      "dataFormat":
+        dataFormat
+        |. Belt.Option.map(dataFormatToJs)
+        |> Js.Undefined.fromOption,
+    }
+    |> Js.Undefined.return
+    |> fn;
 };
 
 module Activations = (R: Core.Rank, D: Core.DataType) => {
@@ -59,6 +209,7 @@ module Basic = (R: Core.Rank, D: Core.DataType) => {
   module LayerFunctor = Layer;
   module Layer = Layer(R, R, D);
   module Initializer = Initializers.Initializer(R, D);
+  module Configs = Configs(R, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external activation : {. "activation": string} => Layer.t = "";
   let activation = activationType =>
@@ -206,47 +357,9 @@ module Basic = (R: Core.Rank, D: Core.DataType) => {
     |> embedding;
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external flatten :
-    {
-      .
-      "inputShape": Js.Undefined.t(array(int)),
-      "batchInputShape": Js.Undefined.t(array(int)),
-      "batchSize": Js.Undefined.t(int),
-      "dtype": Js.Undefined.t(string),
-      "name": Js.Undefined.t(string),
-      "trainable": Js.Undefined.t(bool),
-      "updatable": Js.Undefined.t(bool),
-      "weights": Js.Undefined.t(Core.Tensor(R)(D).t),
-    } =>
-    LayerFunctor(R)(Core.Rank2)(D).t =
+    Js.Undefined.t(Configs.inputConfig) => LayerFunctor(R)(Core.Rank2)(D).t =
     "";
-  let flatten =
-      (
-        ~inputShape=?,
-        ~batchInputShape=?,
-        ~batchSize=?,
-        ~name=?,
-        ~trainable=?,
-        ~updatable=?,
-        ~weights=?,
-        (),
-      ) =>
-    {
-      "inputShape":
-        inputShape
-        |. Belt.Option.map(R.getShapeArray)
-        |> Js.Undefined.fromOption,
-      "batchInputShape":
-        batchInputShape
-        |. Belt.Option.map(R.getShapeArray)
-        |> Js.Undefined.fromOption,
-      "batchSize": batchSize |> Js.Undefined.fromOption,
-      "dtype": D.dType |> Core.dTypeToJs |> Js.Undefined.return,
-      "name": name |> Js.Undefined.fromOption,
-      "trainable": trainable |> Js.Undefined.fromOption,
-      "updatable": updatable |> Js.Undefined.fromOption,
-      "weights": weights |> Js.Undefined.fromOption,
-    }
-    |> flatten;
+  let flatten = Configs.callFnWithInputConfig(flatten);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external repeatVector : {. "n": int} => Layer.t = "";
   let repeatVector = n => {"n": n} |> repeatVector;
@@ -317,10 +430,6 @@ module Convolutional = (D: Core.DataType) => {
     | RectangularDilation(length, width) =>
       [|length, width|] |> unsafeToDilationRateFfi
     };
-  [@bs.deriving jsConverter]
-  type padding = [ | `valid | `same | `casual];
-  [@bs.deriving jsConverter]
-  type dataFormat = [ | `channelsFirst | `channelsLast];
   type convInitializerFfi;
   external unsafeToConvInitializerFfi : 'a => convInitializerFfi = "%identity";
   type convInitializer =
@@ -684,52 +793,13 @@ module Convolutional = (D: Core.DataType) => {
 
 module Merge = (R: Core.Rank, D: Core.DataType) => {
   module Layer = Layer(R, R, D);
-  type configFfi = {
-    .
-    "inputShape": Js.Undefined.t(array(int)),
-    "batchInputShape": Js.Undefined.t(array(int)),
-    "batchSize": Js.Undefined.t(int),
-    "dtype": Js.Undefined.t(string),
-    "name": Js.Undefined.t(string),
-    "trainable": Js.Undefined.t(bool),
-    "updatable": Js.Undefined.t(bool),
-  };
-  let callFnWithConfigObject =
-      (
-        fn,
-        ~inputShape=?,
-        ~batchInputShape=?,
-        ~batchSize=?,
-        ~dtype=?,
-        ~name=?,
-        ~trainable=?,
-        ~updatable=?,
-        (),
-      ) =>
-    {
-      "inputShape":
-        inputShape
-        |. Belt.Option.map(R.getShapeArray)
-        |> Js.Undefined.fromOption,
-      "batchInputShape":
-        batchInputShape
-        |. Belt.Option.map(R.getInputShapeArray)
-        |> Js.Undefined.fromOption,
-      "batchSize": batchSize |> Js.Undefined.fromOption,
-      "dtype":
-        dtype |. Belt.Option.map(Core.dTypeToJs) |> Js.Undefined.fromOption,
-      "name": name |> Js.Undefined.fromOption,
-      "trainable": trainable |> Js.Undefined.fromOption,
-      "updatable": updatable |> Js.Undefined.fromOption,
-    }
-    |> Js.Undefined.return
-    |> fn;
+  module Configs = Configs(R, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external add : Js.Undefined.t(configFfi) => Layer.t = "";
-  let add = callFnWithConfigObject(add);
+  external add : Js.Undefined.t(Configs.inputConfig) => Layer.t = "";
+  let add = Configs.callFnWithInputConfig(add);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external average : Js.Undefined.t(configFfi) => Layer.t = "";
-  let average = callFnWithConfigObject(average);
+  external average : Js.Undefined.t(Configs.inputConfig) => Layer.t = "";
+  let average = Configs.callFnWithInputConfig(average);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external concatenate :
     Js.Undefined.t({. "axis": Js.Undefined.t(int)}) => Layer.t =
@@ -739,99 +809,93 @@ module Merge = (R: Core.Rank, D: Core.DataType) => {
     |> Js.Undefined.return
     |> concatenate;
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external maximum : Js.Undefined.t(configFfi) => Layer.t = "";
-  let maximum = callFnWithConfigObject(maximum);
+  external maximum : Js.Undefined.t(Configs.inputConfig) => Layer.t = "";
+  let maximum = Configs.callFnWithInputConfig(maximum);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external minimum : Js.Undefined.t(configFfi) => Layer.t = "";
-  let minimum = callFnWithConfigObject(minimum);
+  external minimum : Js.Undefined.t(Configs.inputConfig) => Layer.t = "";
+  let minimum = Configs.callFnWithInputConfig(minimum);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external multiply : Js.Undefined.t(configFfi) => Layer.t = "";
-  let multiply = callFnWithConfigObject(multiply);
+  external multiply : Js.Undefined.t(Configs.inputConfig) => Layer.t = "";
+  let multiply = Configs.callFnWithInputConfig(multiply);
 };
 
 module Normalization = (R: Core.Rank, D: Core.DataType) => {
   module Layer = Layer(R, R, D);
-  module Initializer = Initializers.Initializer(R, D);
-  type configFfi = {
-    .
-    "axis": Js.Undefined.t(int),
-    "momentum": Js.Undefined.t(float),
-    "epsilon": Js.Undefined.t(float),
-    "center": Js.Undefined.t(bool),
-    "scale": Js.Undefined.t(bool),
-    "betaInitializer": Js.Undefined.t(Initializer.ffi),
-    "gammaInitializer": Js.Undefined.t(Initializer.ffi),
-    "movingMeanInitializer": Js.Undefined.t(Initializer.ffi),
-    "movingVarianceInitializer": Js.Undefined.t(Initializer.ffi),
-    "betaConstraint": Js.Undefined.t(Constraints.ffi),
-    "gammaConstraint": Js.Undefined.t(Constraints.ffi),
-    "betaRegularizer": Js.Undefined.t(Regularizers.ffi),
-    "gammaRegularizer": Js.Undefined.t(Regularizers.ffi),
-  };
-  let callFnWithConfigObject =
-      (
-        fn,
-        ~axis=?,
-        ~momentum=?,
-        ~epsilon=?,
-        ~center=?,
-        ~scale=?,
-        ~betaInitializer=?,
-        ~gammaInitializer=?,
-        ~movingMeanInitializer=?,
-        ~movingVarianceInitializer=?,
-        ~betaConstraint=?,
-        ~gammaConstraint=?,
-        ~betaRegularizer=?,
-        ~gammaRegularizer=?,
-        (),
-      ) =>
+  module Configs = Configs(R, D);
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external batchNormalization :
+    Js.Undefined.t(Configs.normalizeConfig) => Layer.t =
+    "";
+  let batchNormalization =
+    Configs.callFnWithNormalizeConfig(batchNormalization);
+};
+
+module Pooling = (D: Core.DataType) => {
+  module Conv1dLayer = Layer(Core.Rank3, Core.Rank3, D);
+  module Conv1dDownRankLayer = Layer(Core.Rank3, Core.Rank2, D);
+  module Conv2dLayer = Layer(Core.Rank4, Core.Rank4, D);
+  module Configs1dLayer = Configs(Core.Rank3, D);
+  module Configs2dLayer = Configs(Core.Rank4, D);
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external averagePooling1d :
+    Js.Undefined.t(Configs1dLayer.poolingConfig) => Conv1dLayer.t =
+    "";
+  let averagePooling1d =
+    Configs1dLayer.callFnWithPoolingConfig(averagePooling1d);
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external averagePooling2d :
+    Js.Undefined.t(Configs2dLayer.poolingConfig) => Conv2dLayer.t =
+    "";
+  let averagePooling2d =
+    Configs2dLayer.callFnWithPoolingConfig(averagePooling2d);
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external globalAveragePooling1d :
+    Js.Undefined.t(Configs1dLayer.poolingConfig) => Conv1dDownRankLayer.t =
+    "";
+  let globalAveragePooling1d =
+    Configs1dLayer.callFnWithPoolingConfig(globalAveragePooling1d);
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external globalAveragePooling2d :
+    Js.Undefined.t({. "dataFormat": Js.Undefined.t(string)}) =>
+    Conv2dLayer.t =
+    "";
+  let globalAveragePooling2d = (~dataFormat=?, ()) =>
     {
-      "axis":
-        axis
-        |. Belt.Option.map(R.axisToNegOneDefaultRank)
-        |. Belt.Option.map(R.axisToJs)
-        |> Js.Undefined.fromOption,
-      "momentum": momentum |> Js.Undefined.fromOption,
-      "epsilon": epsilon |> Js.Undefined.fromOption,
-      "center": center |> Js.Undefined.fromOption,
-      "scale": scale |> Js.Undefined.fromOption,
-      "betaInitializer":
-        betaInitializer
-        |. Belt.Option.map(Initializer.initializerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "gammaInitializer":
-        gammaInitializer
-        |. Belt.Option.map(Initializer.initializerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "movingMeanInitializer":
-        movingMeanInitializer
-        |. Belt.Option.map(Initializer.initializerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "movingVarianceInitializer":
-        movingVarianceInitializer
-        |. Belt.Option.map(Initializer.initializerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "betaConstraint":
-        betaConstraint
-        |. Belt.Option.map(Constraints.constraintTypesToJs)
-        |> Js.Undefined.fromOption,
-      "gammaConstraint":
-        gammaConstraint
-        |. Belt.Option.map(Constraints.constraintTypesToJs)
-        |> Js.Undefined.fromOption,
-      "betaRegularizer":
-        betaRegularizer
-        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "gammaRegularizer":
-        gammaRegularizer
-        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+      "dataFormat":
+        dataFormat
+        |. Belt.Option.map(dataFormatToJs)
         |> Js.Undefined.fromOption,
     }
     |> Js.Undefined.return
-    |> fn;
+    |> globalAveragePooling2d;
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external batchNormalization : Js.Undefined.t(configFfi) => Layer.t = "";
-  let batchNormalization = callFnWithConfigObject(batchNormalization);
+  external globalMaxPooling1d :
+    Js.Undefined.t(Configs1dLayer.poolingConfig) => Conv1dDownRankLayer.t =
+    "";
+  let globalMaxPooling1d =
+    Configs1dLayer.callFnWithPoolingConfig(globalMaxPooling1d);
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external globalMaxPooling2d :
+    Js.Undefined.t({. "dataFormat": Js.Undefined.t(string)}) =>
+    Conv2dLayer.t =
+    "";
+  let globalMaxPooling2d = (~dataFormat=?, ()) =>
+    {
+      "dataFormat":
+        dataFormat
+        |. Belt.Option.map(dataFormatToJs)
+        |> Js.Undefined.fromOption,
+    }
+    |> Js.Undefined.return
+    |> globalMaxPooling2d;
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external maxPooling1d :
+    Js.Undefined.t(Configs1dLayer.poolingConfig) => Conv1dLayer.t =
+    "";
+  let maxPooling1d = Configs1dLayer.callFnWithPoolingConfig(maxPooling1d);
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external maxPooling2d :
+    Js.Undefined.t(Configs2dLayer.poolingConfig) => Conv2dLayer.t =
+    "";
+  let maxPooling2d = Configs2dLayer.callFnWithPoolingConfig(maxPooling2d);
 };
