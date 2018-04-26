@@ -748,3 +748,90 @@ module Merge = (R: Core.Rank, D: Core.DataType) => {
   external multiply : Js.Undefined.t(configFfi) => Layer.t = "";
   let multiply = callFnWithConfigObject(multiply);
 };
+
+module Normalization = (R: Core.Rank, D: Core.DataType) => {
+  module Layer = Layer(R, R, D);
+  module Initializer = Initializers.Initializer(R, D);
+  type configFfi = {
+    .
+    "axis": Js.Undefined.t(int),
+    "momentum": Js.Undefined.t(float),
+    "epsilon": Js.Undefined.t(float),
+    "center": Js.Undefined.t(bool),
+    "scale": Js.Undefined.t(bool),
+    "betaInitializer": Js.Undefined.t(Initializer.ffi),
+    "gammaInitializer": Js.Undefined.t(Initializer.ffi),
+    "movingMeanInitializer": Js.Undefined.t(Initializer.ffi),
+    "movingVarianceInitializer": Js.Undefined.t(Initializer.ffi),
+    "betaConstraint": Js.Undefined.t(Constraints.ffi),
+    "gammaConstraint": Js.Undefined.t(Constraints.ffi),
+    "betaRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "gammaRegularizer": Js.Undefined.t(Regularizers.ffi),
+  };
+  let callFnWithConfigObject =
+      (
+        fn,
+        ~axis=?,
+        ~momentum=?,
+        ~epsilon=?,
+        ~center=?,
+        ~scale=?,
+        ~betaInitializer=?,
+        ~gammaInitializer=?,
+        ~movingMeanInitializer=?,
+        ~movingVarianceInitializer=?,
+        ~betaConstraint=?,
+        ~gammaConstraint=?,
+        ~betaRegularizer=?,
+        ~gammaRegularizer=?,
+        (),
+      ) =>
+    {
+      "axis":
+        axis
+        |. Belt.Option.map(R.axisToNegOneDefaultRank)
+        |. Belt.Option.map(R.axisToJs)
+        |> Js.Undefined.fromOption,
+      "momentum": momentum |> Js.Undefined.fromOption,
+      "epsilon": epsilon |> Js.Undefined.fromOption,
+      "center": center |> Js.Undefined.fromOption,
+      "scale": scale |> Js.Undefined.fromOption,
+      "betaInitializer":
+        betaInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "gammaInitializer":
+        gammaInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "movingMeanInitializer":
+        movingMeanInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "movingVarianceInitializer":
+        movingVarianceInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "betaConstraint":
+        betaConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "gammaConstraint":
+        gammaConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "betaRegularizer":
+        betaRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "gammaRegularizer":
+        gammaRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+    }
+    |> Js.Undefined.return
+    |> fn;
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external batchNormalization : Js.Undefined.t(configFfi) => Layer.t = "";
+  let batchNormalization = callFnWithConfigObject(batchNormalization);
+};
