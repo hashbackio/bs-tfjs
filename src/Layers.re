@@ -19,7 +19,24 @@ type padding = [ | `valid | `same | `casual];
 [@bs.deriving jsConverter]
 type dataFormat = [ | `channelsFirst | `channelsLast];
 
+[@bs.deriving jsConverter]
+type implementationType =
+  | [@bs.as 1] Mode1
+  | [@bs.as 2] Mode2;
+
 module Layer = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
+  module SymbolicTensorIn = Models.SymbolicTensor(Rin, D);
+  module SymbolicTensorOut = Models.SymbolicTensor(Rout, D);
+  type t;
+  [@bs.send]
+  external apply : (t, SymbolicTensorIn.t) => SymbolicTensorOut.t = "";
+  [@bs.send]
+  external applyMany :
+    (t, array(SymbolicTensorIn.t)) => array(SymbolicTensorOut.t) =
+    "apply";
+};
+
+module RnnCell = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
   module SymbolicTensorIn = Models.SymbolicTensor(Rin, D);
   module SymbolicTensorOut = Models.SymbolicTensor(Rout, D);
   type t;
@@ -66,6 +83,194 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
     "padding": Js.Undefined.t(string),
     "dataFormat": Js.Undefined.t(string),
   };
+  type gruLayerConfig = {
+    .
+    /* BaseRnnLayerConfig */
+    "cell": Js.Undefined.t(array(RnnCell(R)(R)(D).t)),
+    "returnSequences": Js.Undefined.t(bool),
+    "returnState": Js.Undefined.t(bool),
+    "goBackwards": Js.Undefined.t(bool),
+    "stateful": Js.Undefined.t(bool),
+    "unroll": Js.Undefined.t(bool),
+    "inputDim": Js.Undefined.t(int),
+    "inputLength": Js.Undefined.t(int),
+    /* SimpleRNNLayerConfig  */
+    "units": int,
+    "activation": Js.Undefined.t(string),
+    "useBias": Js.Undefined.t(bool),
+    "kernelInitializer": Js.Undefined.t(Initializer.ffi),
+    "recurrentInitializer": Js.Undefined.t(Initializer.ffi),
+    "biasInitializer": Js.Undefined.t(Initializer.ffi),
+    "kernelRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "recurrentRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "biasRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "kernelConstraint": Js.Undefined.t(Constraints.ffi),
+    "recurrentConstraint": Js.Undefined.t(Constraints.ffi),
+    "biasConstraint": Js.Undefined.t(Constraints.ffi),
+    "dropout": Js.Undefined.t(float),
+    "recurrentDropout": Js.Undefined.t(float),
+    /* GRULayerConfig */
+    "implementation": Js.Undefined.t(int),
+  };
+  type gruCellLayerConfig = {
+    .
+    /* BaseRnnLayerConfig */
+    "cell": Js.Undefined.t(array(RnnCell(R)(R)(D).t)),
+    "returnSequences": Js.Undefined.t(bool),
+    "returnState": Js.Undefined.t(bool),
+    "goBackwards": Js.Undefined.t(bool),
+    "stateful": Js.Undefined.t(bool),
+    "unroll": Js.Undefined.t(bool),
+    "inputDim": Js.Undefined.t(int),
+    "inputLength": Js.Undefined.t(int),
+    /* SimpleRNNLayerConfig  */
+    "units": int,
+    "activation": Js.Undefined.t(string),
+    "useBias": Js.Undefined.t(bool),
+    "kernelInitializer": Js.Undefined.t(Initializer.ffi),
+    "recurrentInitializer": Js.Undefined.t(Initializer.ffi),
+    "biasInitializer": Js.Undefined.t(Initializer.ffi),
+    "kernelRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "recurrentRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "biasRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "kernelConstraint": Js.Undefined.t(Constraints.ffi),
+    "recurrentConstraint": Js.Undefined.t(Constraints.ffi),
+    "biasConstraint": Js.Undefined.t(Constraints.ffi),
+    "dropout": Js.Undefined.t(float),
+    "recurrentDropout": Js.Undefined.t(float),
+    /* GruCellLayerConfig */
+    "recurrentActivation": Js.Undefined.t(string),
+    "implementation": Js.Undefined.t(int),
+  };
+  type lstmLayerConfig = {
+    .
+    /* BaseRnnLayerConfig */
+    "cell": Js.Undefined.t(array(RnnCell(R)(R)(D).t)),
+    "returnSequences": Js.Undefined.t(bool),
+    "returnState": Js.Undefined.t(bool),
+    "goBackwards": Js.Undefined.t(bool),
+    "stateful": Js.Undefined.t(bool),
+    "unroll": Js.Undefined.t(bool),
+    "inputDim": Js.Undefined.t(int),
+    "inputLength": Js.Undefined.t(int),
+    /* SimpleRNNLayerConfig  */
+    "units": int,
+    "activation": Js.Undefined.t(string),
+    "useBias": Js.Undefined.t(bool),
+    "kernelInitializer": Js.Undefined.t(Initializer.ffi),
+    "recurrentInitializer": Js.Undefined.t(Initializer.ffi),
+    "biasInitializer": Js.Undefined.t(Initializer.ffi),
+    "kernelRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "recurrentRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "biasRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "kernelConstraint": Js.Undefined.t(Constraints.ffi),
+    "recurrentConstraint": Js.Undefined.t(Constraints.ffi),
+    "biasConstraint": Js.Undefined.t(Constraints.ffi),
+    "dropout": Js.Undefined.t(float),
+    "recurrentDropout": Js.Undefined.t(float),
+    /* LSTMLayerConfig */
+    "unitForgetBias": Js.Undefined.t(bool),
+    "implementation": Js.Undefined.t(int),
+  };
+  type lstmCellLayerConfig = {
+    .
+    /* BaseRnnLayerConfig */
+    "cell": Js.Undefined.t(array(RnnCell(R)(R)(D).t)),
+    "returnSequences": Js.Undefined.t(bool),
+    "returnState": Js.Undefined.t(bool),
+    "goBackwards": Js.Undefined.t(bool),
+    "stateful": Js.Undefined.t(bool),
+    "unroll": Js.Undefined.t(bool),
+    "inputDim": Js.Undefined.t(int),
+    "inputLength": Js.Undefined.t(int),
+    /* SimpleRNNCellLayerConfig  */
+    "units": int,
+    "activation": Js.Undefined.t(string),
+    "useBias": Js.Undefined.t(bool),
+    "kernelInitializer": Js.Undefined.t(Initializer.ffi),
+    "recurrentInitializer": Js.Undefined.t(Initializer.ffi),
+    "biasInitializer": Js.Undefined.t(Initializer.ffi),
+    "kernelRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "recurrentRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "biasRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "kernelConstraint": Js.Undefined.t(Constraints.ffi),
+    "recurrentConstraint": Js.Undefined.t(Constraints.ffi),
+    "biasConstraint": Js.Undefined.t(Constraints.ffi),
+    "dropout": Js.Undefined.t(float),
+    "recurrentDropout": Js.Undefined.t(float),
+    /* LSTMCellLayerConfig */
+    "recurrentActivation": Js.Undefined.t(string),
+    "unitForgetBias": Js.Undefined.t(bool),
+    "implementation": Js.Undefined.t(int),
+  };
+  type rnnLayerConfig = {
+    .
+    /* BaseRnnLayerConfig */
+    "returnSequences": Js.Undefined.t(bool),
+    "returnState": Js.Undefined.t(bool),
+    "goBackwards": Js.Undefined.t(bool),
+    "stateful": Js.Undefined.t(bool),
+    "unroll": Js.Undefined.t(bool),
+    "inputDim": Js.Undefined.t(int),
+    "inputLength": Js.Undefined.t(int),
+    /* RNNLayerConfig is just a BaseRnnLayerConfig with the cell field being required */
+    "cell": array(RnnCell(R)(R)(D).t),
+  };
+  type simpleRnnLayerConfig = {
+    .
+    /* BaseRnnLayerConfig */
+    "cell": Js.Undefined.t(array(RnnCell(R)(R)(D).t)),
+    "returnSequences": Js.Undefined.t(bool),
+    "returnState": Js.Undefined.t(bool),
+    "goBackwards": Js.Undefined.t(bool),
+    "stateful": Js.Undefined.t(bool),
+    "unroll": Js.Undefined.t(bool),
+    "inputDim": Js.Undefined.t(int),
+    "inputLength": Js.Undefined.t(int),
+    /* SimpleRNNLayerConfig  */
+    "units": int,
+    "activation": Js.Undefined.t(string),
+    "useBias": Js.Undefined.t(bool),
+    "kernelInitializer": Js.Undefined.t(Initializer.ffi),
+    "recurrentInitializer": Js.Undefined.t(Initializer.ffi),
+    "biasInitializer": Js.Undefined.t(Initializer.ffi),
+    "kernelRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "recurrentRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "biasRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "kernelConstraint": Js.Undefined.t(Constraints.ffi),
+    "recurrentConstraint": Js.Undefined.t(Constraints.ffi),
+    "biasConstraint": Js.Undefined.t(Constraints.ffi),
+    "dropout": Js.Undefined.t(float),
+    "recurrentDropout": Js.Undefined.t(float),
+  };
+  type simpleRnnCellLayerConfig = {
+    .
+    /* BaseRnnLayerConfig */
+    "cell": Js.Undefined.t(array(RnnCell(R)(R)(D).t)),
+    "returnSequences": Js.Undefined.t(bool),
+    "returnState": Js.Undefined.t(bool),
+    "goBackwards": Js.Undefined.t(bool),
+    "stateful": Js.Undefined.t(bool),
+    "unroll": Js.Undefined.t(bool),
+    "inputDim": Js.Undefined.t(int),
+    "inputLength": Js.Undefined.t(int),
+    /* SimpleRNNCellLayerConfig  */
+    "units": int,
+    "activation": Js.Undefined.t(string),
+    "useBias": Js.Undefined.t(bool),
+    "kernelInitializer": Js.Undefined.t(Initializer.ffi),
+    "recurrentInitializer": Js.Undefined.t(Initializer.ffi),
+    "biasInitializer": Js.Undefined.t(Initializer.ffi),
+    "kernelRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "recurrentRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "biasRegularizer": Js.Undefined.t(Regularizers.ffi),
+    "kernelConstraint": Js.Undefined.t(Constraints.ffi),
+    "recurrentConstraint": Js.Undefined.t(Constraints.ffi),
+    "biasConstraint": Js.Undefined.t(Constraints.ffi),
+    "dropout": Js.Undefined.t(float),
+    "recurrentDropout": Js.Undefined.t(float),
+  };
+  type stackedRnnCellsConfig = {. "cells": array(RnnCell(R)(R)(D).t)};
   let callFnWithInputConfig =
       (
         fn,
@@ -173,6 +378,558 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
     }
     |> Js.Undefined.return
     |> fn;
+  let callFnWithGruLayerConfig =
+      (
+        fn,
+        ~units,
+        ~cell=?,
+        ~returnSequences=?,
+        ~returnState=?,
+        ~goBackwards=?,
+        ~stateful=?,
+        ~unroll=?,
+        ~inputDim=?,
+        ~inputLength=?,
+        ~activation=?,
+        ~useBias=?,
+        ~kernelInitializer=?,
+        ~recurrentInitializer=?,
+        ~biasInitializer=?,
+        ~kernelRegularizer=?,
+        ~recurrentRegularizer=?,
+        ~biasRegularizer=?,
+        ~kernelConstraint=?,
+        ~recurrentConstraint=?,
+        ~biasConstraint=?,
+        ~dropout=?,
+        ~recurrentDropout=?,
+        ~implementation=?,
+        (),
+      ) =>
+    {
+      "units": units,
+      "cell": cell |> Js.Undefined.fromOption,
+      "returnSequences": returnSequences |> Js.Undefined.fromOption,
+      "returnState": returnState |> Js.Undefined.fromOption,
+      "goBackwards": goBackwards |> Js.Undefined.fromOption,
+      "stateful": stateful |> Js.Undefined.fromOption,
+      "unroll": unroll |> Js.Undefined.fromOption,
+      "inputDim": inputDim |> Js.Undefined.fromOption,
+      "inputLength": inputLength |> Js.Undefined.fromOption,
+      "activation":
+        activation
+        |. Belt.Option.map(activationTypeToJs)
+        |> Js.Undefined.fromOption,
+      "useBias": useBias |> Js.Undefined.fromOption,
+      "kernelInitializer":
+        kernelInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentInitializer":
+        recurrentInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "biasInitializer":
+        biasInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "kernelRegularizer":
+        kernelRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentRegularizer":
+        recurrentRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "biasRegularizer":
+        biasRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "kernelConstraint":
+        kernelConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentConstraint":
+        recurrentConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "biasConstraint":
+        biasConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "dropout": dropout |> Js.Undefined.fromOption,
+      "recurrentDropout": recurrentDropout |> Js.Undefined.fromOption,
+      "implementation":
+        implementation
+        |. Belt.Option.map(implementationTypeToJs)
+        |> Js.Undefined.fromOption,
+    }
+    |> fn;
+  let callFnWithGruCellLayerConfig =
+      (
+        fn,
+        ~units,
+        ~cell=?,
+        ~returnSequences=?,
+        ~returnState=?,
+        ~goBackwards=?,
+        ~stateful=?,
+        ~unroll=?,
+        ~inputDim=?,
+        ~inputLength=?,
+        ~activation=?,
+        ~useBias=?,
+        ~kernelInitializer=?,
+        ~recurrentInitializer=?,
+        ~biasInitializer=?,
+        ~kernelRegularizer=?,
+        ~recurrentRegularizer=?,
+        ~biasRegularizer=?,
+        ~kernelConstraint=?,
+        ~recurrentConstraint=?,
+        ~biasConstraint=?,
+        ~dropout=?,
+        ~recurrentDropout=?,
+        ~recurrentActivation=?,
+        ~implementation=?,
+        (),
+      ) =>
+    {
+      "units": units,
+      "cell": cell |> Js.Undefined.fromOption,
+      "returnSequences": returnSequences |> Js.Undefined.fromOption,
+      "returnState": returnState |> Js.Undefined.fromOption,
+      "goBackwards": goBackwards |> Js.Undefined.fromOption,
+      "stateful": stateful |> Js.Undefined.fromOption,
+      "unroll": unroll |> Js.Undefined.fromOption,
+      "inputDim": inputDim |> Js.Undefined.fromOption,
+      "inputLength": inputLength |> Js.Undefined.fromOption,
+      "activation":
+        activation
+        |. Belt.Option.map(activationTypeToJs)
+        |> Js.Undefined.fromOption,
+      "useBias": useBias |> Js.Undefined.fromOption,
+      "kernelInitializer":
+        kernelInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentInitializer":
+        recurrentInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "biasInitializer":
+        biasInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "kernelRegularizer":
+        kernelRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentRegularizer":
+        recurrentRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "biasRegularizer":
+        biasRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "kernelConstraint":
+        kernelConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentConstraint":
+        recurrentConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "biasConstraint":
+        biasConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "dropout": dropout |> Js.Undefined.fromOption,
+      "recurrentDropout": recurrentDropout |> Js.Undefined.fromOption,
+      "recurrentActivation":
+        recurrentActivation
+        |. Belt.Option.map(activationTypeToJs)
+        |> Js.Undefined.fromOption,
+      "implementation":
+        implementation
+        |. Belt.Option.map(implementationTypeToJs)
+        |> Js.Undefined.fromOption,
+    }
+    |> fn;
+  let callFnWithLstmLayerConfig =
+      (
+        fn,
+        ~units,
+        ~cell=?,
+        ~returnSequences=?,
+        ~returnState=?,
+        ~goBackwards=?,
+        ~stateful=?,
+        ~unroll=?,
+        ~inputDim=?,
+        ~inputLength=?,
+        ~activation=?,
+        ~useBias=?,
+        ~kernelInitializer=?,
+        ~recurrentInitializer=?,
+        ~biasInitializer=?,
+        ~kernelRegularizer=?,
+        ~recurrentRegularizer=?,
+        ~biasRegularizer=?,
+        ~kernelConstraint=?,
+        ~recurrentConstraint=?,
+        ~biasConstraint=?,
+        ~dropout=?,
+        ~recurrentDropout=?,
+        ~unitForgetBias=?,
+        ~implementation=?,
+        (),
+      ) =>
+    {
+      "units": units,
+      "cell": cell |> Js.Undefined.fromOption,
+      "returnSequences": returnSequences |> Js.Undefined.fromOption,
+      "returnState": returnState |> Js.Undefined.fromOption,
+      "goBackwards": goBackwards |> Js.Undefined.fromOption,
+      "stateful": stateful |> Js.Undefined.fromOption,
+      "unroll": unroll |> Js.Undefined.fromOption,
+      "inputDim": inputDim |> Js.Undefined.fromOption,
+      "inputLength": inputLength |> Js.Undefined.fromOption,
+      "activation":
+        activation
+        |. Belt.Option.map(activationTypeToJs)
+        |> Js.Undefined.fromOption,
+      "useBias": useBias |> Js.Undefined.fromOption,
+      "kernelInitializer":
+        kernelInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentInitializer":
+        recurrentInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "biasInitializer":
+        biasInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "kernelRegularizer":
+        kernelRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentRegularizer":
+        recurrentRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "biasRegularizer":
+        biasRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "kernelConstraint":
+        kernelConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentConstraint":
+        recurrentConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "biasConstraint":
+        biasConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "dropout": dropout |> Js.Undefined.fromOption,
+      "recurrentDropout": recurrentDropout |> Js.Undefined.fromOption,
+      "unitForgetBias": unitForgetBias |> Js.Undefined.fromOption,
+      "implementation":
+        implementation
+        |. Belt.Option.map(implementationTypeToJs)
+        |> Js.Undefined.fromOption,
+    }
+    |> fn;
+  let callFnWithLstmCellLayerConfig =
+      (
+        fn,
+        ~units,
+        ~cell=?,
+        ~returnSequences=?,
+        ~returnState=?,
+        ~goBackwards=?,
+        ~stateful=?,
+        ~unroll=?,
+        ~inputDim=?,
+        ~inputLength=?,
+        ~activation=?,
+        ~useBias=?,
+        ~kernelInitializer=?,
+        ~recurrentInitializer=?,
+        ~biasInitializer=?,
+        ~kernelRegularizer=?,
+        ~recurrentRegularizer=?,
+        ~biasRegularizer=?,
+        ~kernelConstraint=?,
+        ~recurrentConstraint=?,
+        ~biasConstraint=?,
+        ~dropout=?,
+        ~recurrentDropout=?,
+        ~recurrentActivation=?,
+        ~unitForgetBias=?,
+        ~implementation=?,
+        (),
+      ) =>
+    {
+      "units": units,
+      "cell": cell |> Js.Undefined.fromOption,
+      "returnSequences": returnSequences |> Js.Undefined.fromOption,
+      "returnState": returnState |> Js.Undefined.fromOption,
+      "goBackwards": goBackwards |> Js.Undefined.fromOption,
+      "stateful": stateful |> Js.Undefined.fromOption,
+      "unroll": unroll |> Js.Undefined.fromOption,
+      "inputDim": inputDim |> Js.Undefined.fromOption,
+      "inputLength": inputLength |> Js.Undefined.fromOption,
+      "activation":
+        activation
+        |. Belt.Option.map(activationTypeToJs)
+        |> Js.Undefined.fromOption,
+      "useBias": useBias |> Js.Undefined.fromOption,
+      "kernelInitializer":
+        kernelInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentInitializer":
+        recurrentInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "biasInitializer":
+        biasInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "kernelRegularizer":
+        kernelRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentRegularizer":
+        recurrentRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "biasRegularizer":
+        biasRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "kernelConstraint":
+        kernelConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentConstraint":
+        recurrentConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "biasConstraint":
+        biasConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "dropout": dropout |> Js.Undefined.fromOption,
+      "recurrentDropout": recurrentDropout |> Js.Undefined.fromOption,
+      "recurrentActivation":
+        recurrentActivation
+        |. Belt.Option.map(activationTypeToJs)
+        |> Js.Undefined.fromOption,
+      "unitForgetBias": unitForgetBias |> Js.Undefined.fromOption,
+      "implementation":
+        implementation
+        |. Belt.Option.map(implementationTypeToJs)
+        |> Js.Undefined.fromOption,
+    }
+    |> fn;
+  let callFnWithRnnLayerConfig =
+      (
+        fn,
+        ~cell,
+        ~returnSequences=?,
+        ~returnState=?,
+        ~goBackwards=?,
+        ~stateful=?,
+        ~unroll=?,
+        ~inputDim=?,
+        ~inputLength=?,
+        (),
+      ) =>
+    {
+      "cell": cell |> Js.Undefined.fromOption,
+      "returnSequences": returnSequences |> Js.Undefined.fromOption,
+      "returnState": returnState |> Js.Undefined.fromOption,
+      "goBackwards": goBackwards |> Js.Undefined.fromOption,
+      "stateful": stateful |> Js.Undefined.fromOption,
+      "unroll": unroll |> Js.Undefined.fromOption,
+      "inputDim": inputDim |> Js.Undefined.fromOption,
+      "inputLength": inputLength |> Js.Undefined.fromOption,
+    }
+    |> fn;
+  let callFnWithSimpleLayerConfig =
+      (
+        fn,
+        ~units,
+        ~cell=?,
+        ~returnSequences=?,
+        ~returnState=?,
+        ~goBackwards=?,
+        ~stateful=?,
+        ~unroll=?,
+        ~inputDim=?,
+        ~inputLength=?,
+        ~activation=?,
+        ~useBias=?,
+        ~kernelInitializer=?,
+        ~recurrentInitializer=?,
+        ~biasInitializer=?,
+        ~kernelRegularizer=?,
+        ~recurrentRegularizer=?,
+        ~biasRegularizer=?,
+        ~kernelConstraint=?,
+        ~recurrentConstraint=?,
+        ~biasConstraint=?,
+        ~dropout=?,
+        ~recurrentDropout=?,
+        (),
+      ) =>
+    {
+      "units": units,
+      "cell": cell |> Js.Undefined.fromOption,
+      "returnSequences": returnSequences |> Js.Undefined.fromOption,
+      "returnState": returnState |> Js.Undefined.fromOption,
+      "goBackwards": goBackwards |> Js.Undefined.fromOption,
+      "stateful": stateful |> Js.Undefined.fromOption,
+      "unroll": unroll |> Js.Undefined.fromOption,
+      "inputDim": inputDim |> Js.Undefined.fromOption,
+      "inputLength": inputLength |> Js.Undefined.fromOption,
+      "activation":
+        activation
+        |. Belt.Option.map(activationTypeToJs)
+        |> Js.Undefined.fromOption,
+      "useBias": useBias |> Js.Undefined.fromOption,
+      "kernelInitializer":
+        kernelInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentInitializer":
+        recurrentInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "biasInitializer":
+        biasInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "kernelRegularizer":
+        kernelRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentRegularizer":
+        recurrentRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "biasRegularizer":
+        biasRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "kernelConstraint":
+        kernelConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentConstraint":
+        recurrentConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "biasConstraint":
+        biasConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "dropout": dropout |> Js.Undefined.fromOption,
+      "recurrentDropout": recurrentDropout |> Js.Undefined.fromOption,
+    }
+    |> fn;
+  let callFnWithSimpleCellLayerConfig =
+      (
+        fn,
+        ~units,
+        ~cell=?,
+        ~returnSequences=?,
+        ~returnState=?,
+        ~goBackwards=?,
+        ~stateful=?,
+        ~unroll=?,
+        ~inputDim=?,
+        ~inputLength=?,
+        ~activation=?,
+        ~useBias=?,
+        ~kernelInitializer=?,
+        ~recurrentInitializer=?,
+        ~biasInitializer=?,
+        ~kernelRegularizer=?,
+        ~recurrentRegularizer=?,
+        ~biasRegularizer=?,
+        ~kernelConstraint=?,
+        ~recurrentConstraint=?,
+        ~biasConstraint=?,
+        ~dropout=?,
+        ~recurrentDropout=?,
+        (),
+      ) =>
+    {
+      "units": units,
+      "cell": cell |> Js.Undefined.fromOption,
+      "returnSequences": returnSequences |> Js.Undefined.fromOption,
+      "returnState": returnState |> Js.Undefined.fromOption,
+      "goBackwards": goBackwards |> Js.Undefined.fromOption,
+      "stateful": stateful |> Js.Undefined.fromOption,
+      "unroll": unroll |> Js.Undefined.fromOption,
+      "inputDim": inputDim |> Js.Undefined.fromOption,
+      "inputLength": inputLength |> Js.Undefined.fromOption,
+      "activation":
+        activation
+        |. Belt.Option.map(activationTypeToJs)
+        |> Js.Undefined.fromOption,
+      "useBias": useBias |> Js.Undefined.fromOption,
+      "kernelInitializer":
+        kernelInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentInitializer":
+        recurrentInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "biasInitializer":
+        biasInitializer
+        |. Belt.Option.map(Initializer.initializerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "kernelRegularizer":
+        kernelRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentRegularizer":
+        recurrentRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "biasRegularizer":
+        biasRegularizer
+        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
+        |> Js.Undefined.fromOption,
+      "kernelConstraint":
+        kernelConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "recurrentConstraint":
+        recurrentConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "biasConstraint":
+        biasConstraint
+        |. Belt.Option.map(Constraints.constraintTypesToJs)
+        |> Js.Undefined.fromOption,
+      "dropout": dropout |> Js.Undefined.fromOption,
+      "recurrentDropout": recurrentDropout |> Js.Undefined.fromOption,
+    }
+    |> fn;
+  let callFnWithSimpleCellLayerConfig = (fn, ~cells, ()) =>
+    {"cells": cells |> Js.Undefined.fromOption} |> fn;
 };
 
 module Activations = (R: Core.Rank, D: Core.DataType) => {
