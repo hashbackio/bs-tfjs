@@ -679,7 +679,7 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
       ~recurrentDropout?,
       (),
     );
-  let callFnWithSimpleCellLayerConfig = (fn, ~cells, ()) =>
+  let callFnWithStackedCellsLayerConfig = (fn, ~cells, ()) =>
     {"cells": cells} |> fn;
 };
 
@@ -1406,4 +1406,37 @@ module Pooling = (D: Core.DataType) => {
     Js.Undefined.t(Configs2dLayer.poolingConfig) => Conv2dLayer.t =
     "";
   let maxPooling2d = Configs2dLayer.callFnWithPoolingConfig(maxPooling2d);
+};
+
+module Recurrent = (D: Core.DataType) => {
+  module Rnn2dLayer = Layer(Core.Rank3, Core.Rank3, D);
+  module RnnCell = RnnCell(Core.Rank2, Core.Rank2, D);
+  module Configs2dLayer = Configs(Core.Rank3, D);
+  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  external gru : Configs2dLayer.recurrentConfig => Rnn2dLayer.t = "";
+  let gru = Configs2dLayer.callFnWithGruLayerConfig(gru);
+  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  external gruCell : Configs2dLayer.recurrentConfig => RnnCell.t = "";
+  let gruCell = Configs2dLayer.callFnWithGruCellLayerConfig(gruCell);
+  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  external lstm : Configs2dLayer.recurrentConfig => Rnn2dLayer.t = "";
+  let lstm = Configs2dLayer.callFnWithLstmLayerConfig(lstm);
+  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  external lstmCell : Configs2dLayer.recurrentConfig => RnnCell.t = "";
+  let lstmCell = Configs2dLayer.callFnWithLstmCellLayerConfig(lstmCell);
+  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  external rnn : Configs2dLayer.recurrentConfig => Rnn2dLayer.t = "";
+  let rnn = Configs2dLayer.callFnWithRnnLayerConfig(rnn);
+  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  external simpleRNN : Configs2dLayer.recurrentConfig => Rnn2dLayer.t = "";
+  let simpleRNN = Configs2dLayer.callFnWithSimpleLayerConfig(simpleRNN);
+  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  external simpleRNNCell : Configs2dLayer.recurrentConfig => RnnCell.t = "";
+  let simpleRNNCell =
+    Configs2dLayer.callFnWithSimpleCellLayerConfig(simpleRNNCell);
+  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  external stackedRNNCells : Configs2dLayer.stackedRnnCellsConfig => RnnCell.t =
+    "";
+  let stackedRNNCells =
+    Configs2dLayer.callFnWithStackedCellsLayerConfig(stackedRNNCells);
 };
