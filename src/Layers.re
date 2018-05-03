@@ -1440,3 +1440,24 @@ module Recurrent = (D: Core.DataType) => {
   let stackedRNNCells =
     Configs2dLayer.callFnWithStackedCellsLayerConfig(stackedRNNCells);
 };
+
+module Inputs = (D: Core.DataType) => {
+  module Input1dLayer = Layer(Core.Rank1, Core.Rank2, D);
+  module Input2dLayer = Layer(Core.Rank2, Core.Rank3, D);
+  module Input3dLayer = Layer(Core.Rank3, Core.Rank4, D);
+  module Configs1d = Configs(Core.Rank1, D);
+  module Configs2d = Configs(Core.Rank2, D);
+  module Configs3d = Configs(Core.Rank3, D);
+  [@bs.module "tensorflow/tfjs"]
+  external input1d : Js.Undefined.t(Configs1d.inputConfig) => Input1dLayer.t =
+    "input";
+  let input1d = Configs1d.callFnWithInputConfig(input1d);
+  [@bs.module "tensorflow/tfjs"]
+  external input2d : Js.Undefined.t(Configs2d.inputConfig) => Input2dLayer.t =
+    "input";
+  let input2d = Configs2d.callFnWithInputConfig(input2d);
+  [@bs.module "tensorflow/tfjs"]
+  external input3d : Js.Undefined.t(Configs3d.inputConfig) => Input3dLayer.t =
+    "input";
+  let input3d = Configs3d.callFnWithInputConfig(input3d);
+};
