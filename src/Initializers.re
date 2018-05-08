@@ -7,7 +7,7 @@ type varianceScalingDistribution = [ | `normal | `uniform];
 module Initializer = (R: Core.Rank, D: Core.DataType) => {
   type t;
   type ffi;
-  external unsafeToFfi : 'a => ffi = "%identity";
+  external _unsafeToFfi : 'a => ffi = "%identity";
   type initializerType =
     | Constant
     | GlorotNormal
@@ -25,20 +25,20 @@ module Initializer = (R: Core.Rank, D: Core.DataType) => {
     | Initializer(t);
   let initializerTypeToJs = initializerType =>
     switch (initializerType) {
-    | Constant => "constant" |> unsafeToFfi
-    | GlorotNormal => "glorotNormal" |> unsafeToFfi
-    | GlorotUniform => "glorotUniform" |> unsafeToFfi
-    | HeNormal => "heNormal" |> unsafeToFfi
-    | Identity => "identity" |> unsafeToFfi
-    | LeCunNormal => "leCunNormal" |> unsafeToFfi
-    | Ones => "ones" |> unsafeToFfi
-    | Orthogonal => "orthogonal" |> unsafeToFfi
-    | RandomNormal => "randomNormal" |> unsafeToFfi
-    | RandomUniform => "randomUniform" |> unsafeToFfi
-    | TruncatedNormal => "truncatedNormal" |> unsafeToFfi
-    | VarianceScaling => "varianceScaling" |> unsafeToFfi
-    | Zeros => "zeros" |> unsafeToFfi
-    | Initializer(t) => t |> unsafeToFfi
+    | Constant => "constant" |> _unsafeToFfi
+    | GlorotNormal => "glorotNormal" |> _unsafeToFfi
+    | GlorotUniform => "glorotUniform" |> _unsafeToFfi
+    | HeNormal => "heNormal" |> _unsafeToFfi
+    | Identity => "identity" |> _unsafeToFfi
+    | LeCunNormal => "leCunNormal" |> _unsafeToFfi
+    | Ones => "ones" |> _unsafeToFfi
+    | Orthogonal => "orthogonal" |> _unsafeToFfi
+    | RandomNormal => "randomNormal" |> _unsafeToFfi
+    | RandomUniform => "randomUniform" |> _unsafeToFfi
+    | TruncatedNormal => "truncatedNormal" |> _unsafeToFfi
+    | VarianceScaling => "varianceScaling" |> _unsafeToFfi
+    | Zeros => "zeros" |> _unsafeToFfi
+    | Initializer(t) => t |> _unsafeToFfi
     };
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "initializer"]
   external constant : D.t => t = "";

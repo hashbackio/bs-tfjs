@@ -2,7 +2,7 @@ type t;
 
 type ffi;
 
-external unsafeToFfi : 'a => ffi = "%identity";
+external _unsafeToFfi : 'a => ffi = "%identity";
 
 type regularizerType =
   | L1L2
@@ -10,8 +10,8 @@ type regularizerType =
 
 let regularizerTypeToJs = regularizerType =>
   switch (regularizerType) {
-  | L1L2 => "l1l2" |> unsafeToFfi
-  | Regularizer(t) => t |> unsafeToFfi
+  | L1L2 => "l1l2" |> _unsafeToFfi
+  | Regularizer(t) => t |> _unsafeToFfi
   };
 
 [@bs.module "@tensorflow/tfjs"] [@bs.scope "regularizers"]

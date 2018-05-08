@@ -885,37 +885,37 @@ module Convolutional = (D: Core.DataType) => {
   type kernelSize2D =
     | Cube(int)
     | Box(int, int, int);
-  external unsafeToKernelSizeFfi : 'a => kernelSizeFfi = "%identity";
+  external _unsafeToKernelSizeFfi : 'a => kernelSizeFfi = "%identity";
   let kernelSize1DToFfi = kernelSize1D =>
     switch (kernelSize1D) {
-    | Square(length) => length |> unsafeToKernelSizeFfi
-    | Rectangle(length, width) => [|length, width|] |> unsafeToKernelSizeFfi
+    | Square(length) => length |> _unsafeToKernelSizeFfi
+    | Rectangle(length, width) => [|length, width|] |> _unsafeToKernelSizeFfi
     };
   let kernelSize2DToFfi = kernelSize2D =>
     switch (kernelSize2D) {
-    | Cube(length) => length |> unsafeToKernelSizeFfi
+    | Cube(length) => length |> _unsafeToKernelSizeFfi
     | Box(length, width, height) =>
-      [|length, width, height|] |> unsafeToKernelSizeFfi
+      [|length, width, height|] |> _unsafeToKernelSizeFfi
     };
   type strideFfi;
-  external unsafeToStrideFfi : 'a => strideFfi = "%identity";
+  external _unsafeToStrideFfi : 'a => strideFfi = "%identity";
   type dilationRateFfi;
-  external unsafeToDilationRateFfi : 'a => dilationRateFfi = "%identity";
+  external _unsafeToDilationRateFfi : 'a => dilationRateFfi = "%identity";
   type strideOrDilationRate1D =
     | EvenStride(int)
     | OddStride(int, int)
     | Dilation(int);
   let strideOrDilationRate1DToStrideFfi = strideOrDilationRate1D =>
     switch (strideOrDilationRate1D) {
-    | EvenStride(stride) => stride |> unsafeToStrideFfi
-    | OddStride(length, width) => [|length, width|] |> unsafeToStrideFfi
-    | Dilation(_) => 1 |> unsafeToStrideFfi
+    | EvenStride(stride) => stride |> _unsafeToStrideFfi
+    | OddStride(length, width) => [|length, width|] |> _unsafeToStrideFfi
+    | Dilation(_) => 1 |> _unsafeToStrideFfi
     };
   let strideOrDilationRate1DToDilationRateFfi = strideOrDilationRate1D =>
     switch (strideOrDilationRate1D) {
-    | EvenStride(_) => 1 |> unsafeToDilationRateFfi
-    | OddStride(_, _) => 1 |> unsafeToDilationRateFfi
-    | Dilation(length) => length |> unsafeToDilationRateFfi
+    | EvenStride(_) => 1 |> _unsafeToDilationRateFfi
+    | OddStride(_, _) => 1 |> _unsafeToDilationRateFfi
+    | Dilation(length) => length |> _unsafeToDilationRateFfi
     };
   type strideOrDilationRate2D =
     | EvenStride(int)
@@ -924,22 +924,23 @@ module Convolutional = (D: Core.DataType) => {
     | RectangularDilation(int, int);
   let strideOrDilationRate2DToStrideFfi = strideOrDilationRate2D =>
     switch (strideOrDilationRate2D) {
-    | EvenStride(length) => length |> unsafeToStrideFfi
+    | EvenStride(length) => length |> _unsafeToStrideFfi
     | OddStride(length, width, height) =>
-      [|length, width, height|] |> unsafeToStrideFfi
-    | EqualDilation(_) => 1 |> unsafeToStrideFfi
-    | RectangularDilation(_, _) => 1 |> unsafeToStrideFfi
+      [|length, width, height|] |> _unsafeToStrideFfi
+    | EqualDilation(_) => 1 |> _unsafeToStrideFfi
+    | RectangularDilation(_, _) => 1 |> _unsafeToStrideFfi
     };
   let strideOrDilationRate2DToDilationRateFfi = strideOrDilationRate2D =>
     switch (strideOrDilationRate2D) {
-    | EvenStride(_) => 1 |> unsafeToDilationRateFfi
-    | OddStride(_, _, _) => 1 |> unsafeToDilationRateFfi
-    | EqualDilation(length) => length |> unsafeToDilationRateFfi
+    | EvenStride(_) => 1 |> _unsafeToDilationRateFfi
+    | OddStride(_, _, _) => 1 |> _unsafeToDilationRateFfi
+    | EqualDilation(length) => length |> _unsafeToDilationRateFfi
     | RectangularDilation(length, width) =>
-      [|length, width|] |> unsafeToDilationRateFfi
+      [|length, width|] |> _unsafeToDilationRateFfi
     };
   type convInitializerFfi;
-  external unsafeToConvInitializerFfi : 'a => convInitializerFfi = "%identity";
+  external _unsafeToConvInitializerFfi : 'a => convInitializerFfi =
+    "%identity";
   type convInitializer =
     | Conv1d(Conv1dInitializer.initializerType)
     | Conv2d(Conv2dInitializer.initializerType);
@@ -948,11 +949,11 @@ module Convolutional = (D: Core.DataType) => {
     | Conv1d(conv1dInitializer) =>
       conv1dInitializer
       |> Conv1dInitializer.initializerTypeToJs
-      |> unsafeToConvInitializerFfi
+      |> _unsafeToConvInitializerFfi
     | Conv2d(conv2dInitializer) =>
       conv2dInitializer
       |> Conv2dInitializer.initializerTypeToJs
-      |> unsafeToConvInitializerFfi
+      |> _unsafeToConvInitializerFfi
     };
   type configFfi = {
     .

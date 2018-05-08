@@ -6,13 +6,13 @@ type constraintType =
 
 type ffi;
 
-external unsafeToFfi : 'a => ffi = "%identity";
+external _unsafeToFfi : 'a => ffi = "%identity";
 
 let constraintTypesToJs = constraintType =>
   switch (constraintType) {
-  | MaxNorm => "maxNorm" |> unsafeToFfi
-  | MinMaxNorm => "minMaxNorm" |> unsafeToFfi
-  | NonNeg => "nonNeg" |> unsafeToFfi
-  | UnitNorm => "unitNorm" |> unsafeToFfi
+  | MaxNorm => "maxNorm" |> _unsafeToFfi
+  | MinMaxNorm => "minMaxNorm" |> _unsafeToFfi
+  | NonNeg => "nonNeg" |> _unsafeToFfi
+  | UnitNorm => "unitNorm" |> _unsafeToFfi
   };
 /* TODO: Expose the functions to create customer constraints */
