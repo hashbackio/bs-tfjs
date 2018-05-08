@@ -43,6 +43,7 @@ module Optimizer = (R: Core.Rank, D: Core.DataType) => {
 };
 
 module Losses = (R: Core.Rank, D: Core.DataType) => {
+  type t;
   [@bs.deriving jsConverter]
   type reduction = [
     | [@bs.as "NONE"] `None
@@ -51,8 +52,7 @@ module Losses = (R: Core.Rank, D: Core.DataType) => {
     | [@bs.as "SUM_BY_NONZERO_WEIGHTS"] `SumByNonzeroWeights
   ];
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "losses"]
-  external absoluteDifference :
-    (Core.Tensor(R)(D).t, Core.Tensor(R)(D).t) => Core.Tensor(R)(D).t =
+  external absoluteDifference : (Core.Tensor(R)(D).t, Core.Tensor(R)(D).t) => t =
     "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "losses"]
   external absoluteDifferenceWithScalarOptions :
@@ -62,7 +62,7 @@ module Losses = (R: Core.Rank, D: Core.DataType) => {
       Core.Tensor(Core.Rank0)(D).t,
       string
     ) =>
-    Core.Tensor(R)(D).t =
+    t =
     "";
   let absoluteDifferenceWithScalarOptions =
       (labels, predictions, weights, reduction) =>
@@ -80,7 +80,7 @@ module Losses = (R: Core.Rank, D: Core.DataType) => {
       Core.Tensor(Core.Rank1)(D).t,
       string
     ) =>
-    Core.Tensor(R)(D).t =
+    t =
     "";
   let absoluteDifferenceWithBroadcastOptions =
       (labels, predictions, weights, reduction) =>
@@ -93,7 +93,7 @@ module Losses = (R: Core.Rank, D: Core.DataType) => {
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "losses"]
   external absoluteDifferenceWithOptions :
     (Core.Tensor(R)(D).t, Core.Tensor(R)(D).t, Core.Tensor(R)(D).t, string) =>
-    Core.Tensor(R)(D).t =
+    t =
     "";
   let absoluteDifferenceWithOptions =
       (labels, predictions, weights, reduction) =>
@@ -104,12 +104,10 @@ module Losses = (R: Core.Rank, D: Core.DataType) => {
       reduction |> reductionToJs,
     );
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "losses"]
-  external computeWeightedLoss : Core.Tensor(R)(D).t => Core.Tensor(R)(D).t =
-    "";
+  external computeWeightedLoss : Core.Tensor(R)(D).t => t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "losses"]
   external computeWeightedLossWithScalarOptions :
-    (Core.Tensor(R)(D).t, Core.Tensor(Core.Rank0)(D).t, string) =>
-    Core.Tensor(R)(D).t =
+    (Core.Tensor(R)(D).t, Core.Tensor(Core.Rank0)(D).t, string) => t =
     "";
   let computeWeightedLossWithScalarOptions = (labels, weights, reduction) =>
     computeWeightedLossWithScalarOptions(
@@ -119,8 +117,7 @@ module Losses = (R: Core.Rank, D: Core.DataType) => {
     );
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "losses"]
   external computeWeightedLossWithBroadcastOptions :
-    (Core.Tensor(R)(D).t, Core.Tensor(Core.Rank1)(D).t, string) =>
-    Core.Tensor(R)(D).t =
+    (Core.Tensor(R)(D).t, Core.Tensor(Core.Rank1)(D).t, string) => t =
     "";
   let computeWeightedLossWithBroadcastOptions = (labels, weights, reduction) =>
     computeWeightedLossWithBroadcastOptions(
@@ -130,7 +127,7 @@ module Losses = (R: Core.Rank, D: Core.DataType) => {
     );
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "losses"]
   external computeWeightedLossWithOptions :
-    (Core.Tensor(R)(D).t, Core.Tensor(R)(D).t, string) => Core.Tensor(R)(D).t =
+    (Core.Tensor(R)(D).t, Core.Tensor(R)(D).t, string) => t =
     "";
   let computeWeightedLossWithOptions = (labels, weights, reduction) =>
     computeWeightedLossWithOptions(
@@ -140,6 +137,6 @@ module Losses = (R: Core.Rank, D: Core.DataType) => {
     );
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "losses"]
   external softmaxCrossEntropy :
-    (Core.Tensor(R)(D).t, Core.Tensor(R)(D).t) => Core.Tensor(R)(D).t =
+    (Core.Tensor(R)(D).t, Core.Tensor(R)(D).t) => t =
     "";
 };
