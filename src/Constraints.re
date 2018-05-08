@@ -15,4 +15,4 @@ let constraintTypesToJs = constraintType =>
   | NonNeg => "nonNeg" |> _unsafeToFfi
   | UnitNorm => "unitNorm" |> _unsafeToFfi
   };
-/* TODO: Expose the functions to create customer constraints */
+/* TODO: Expose the functions to create custom constraints */
