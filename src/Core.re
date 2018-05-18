@@ -1,3 +1,12 @@
+let init: unit => unit = [%raw
+  {|
+  function() {
+    require('@tensorflow/tfjs-node');
+    require('@tensorflow/tfjs').setBackend('tensorflow');
+  }
+|}
+];
+
 [@bs.deriving jsConverter]
 type rank = [ | `R0 | `R1 | `R2 | `R3 | `R4];
 
