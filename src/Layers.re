@@ -1413,29 +1413,29 @@ module Recurrent = (D: Core.DataType) => {
   module Rnn2dLayer = Layer(Core.Rank3, Core.Rank3, D);
   module RnnCell = RnnCell(Core.Rank2, Core.Rank2, D);
   module Configs2dLayer = Configs(Core.Rank3, D);
-  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external gru : Configs2dLayer.recurrentConfig => Rnn2dLayer.t = "";
   let gru = Configs2dLayer.callFnWithGruLayerConfig(gru);
-  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external gruCell : Configs2dLayer.recurrentConfig => RnnCell.t = "";
   let gruCell = Configs2dLayer.callFnWithGruCellLayerConfig(gruCell);
-  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external lstm : Configs2dLayer.recurrentConfig => Rnn2dLayer.t = "";
   let lstm = Configs2dLayer.callFnWithLstmLayerConfig(lstm);
-  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external lstmCell : Configs2dLayer.recurrentConfig => RnnCell.t = "";
   let lstmCell = Configs2dLayer.callFnWithLstmCellLayerConfig(lstmCell);
-  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external rnn : Configs2dLayer.recurrentConfig => Rnn2dLayer.t = "";
   let rnn = Configs2dLayer.callFnWithRnnLayerConfig(rnn);
-  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external simpleRNN : Configs2dLayer.recurrentConfig => Rnn2dLayer.t = "";
   let simpleRNN = Configs2dLayer.callFnWithSimpleLayerConfig(simpleRNN);
-  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external simpleRNNCell : Configs2dLayer.recurrentConfig => RnnCell.t = "";
   let simpleRNNCell =
     Configs2dLayer.callFnWithSimpleCellLayerConfig(simpleRNNCell);
-  [@bs.module "tensorflow/tfjs"] [@bs.scope "layers"]
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external stackedRNNCells : Configs2dLayer.stackedRnnCellsConfig => RnnCell.t =
     "";
   let stackedRNNCells =
@@ -1449,15 +1449,15 @@ module Inputs = (D: Core.DataType) => {
   module Configs1d = Configs(Core.Rank1, D);
   module Configs2d = Configs(Core.Rank2, D);
   module Configs3d = Configs(Core.Rank3, D);
-  [@bs.module "tensorflow/tfjs"]
+  [@bs.module "@tensorflow/tfjs"]
   external input1d : Js.Undefined.t(Configs1d.inputConfig) => Input1dLayer.t =
     "input";
   let input1d = Configs1d.callFnWithInputConfig(input1d);
-  [@bs.module "tensorflow/tfjs"]
+  [@bs.module "@tensorflow/tfjs"]
   external input2d : Js.Undefined.t(Configs2d.inputConfig) => Input2dLayer.t =
     "input";
   let input2d = Configs2d.callFnWithInputConfig(input2d);
-  [@bs.module "tensorflow/tfjs"]
+  [@bs.module "@tensorflow/tfjs"]
   external input3d : Js.Undefined.t(Configs3d.inputConfig) => Input3dLayer.t =
     "input";
   let input3d = Configs3d.callFnWithInputConfig(input3d);

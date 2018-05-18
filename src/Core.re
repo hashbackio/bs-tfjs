@@ -26,14 +26,21 @@ module type Rank = {
   let getPaddingArray: padding => array(array(int));
 };
 
-module Rank0: Rank = {
+[@bs.deriving jsConverter]
+type _rank0Axis =
+  | [@bs.as 0] Default;
+
+module Rank0:
+  Rank with type shape = int with type inputShape = int with
+    type padding = unit with
+    type axis = _rank0Axis = {
   let rank = `R0;
   type shape = int;
   type inputShape = int;
   type padding = unit;
-  [@bs.deriving jsConverter]
-  type axis =
-    | [@bs.as 0] Default;
+  type axis = _rank0Axis;
+  let axisToJs = _rank0AxisToJs;
+  let axisFromJs = _rank0AxisFromJs;
   let axisToInclusiveNegRankExclusiveRank = axis =>
     switch (axis) {
     | Default => Default
@@ -52,16 +59,23 @@ module Rank0: Rank = {
   let getPaddingArray = () => [||];
 };
 
-module Rank1: Rank = {
+[@bs.deriving jsConverter]
+type _rank1Axis =
+  | [@bs.as (-1)] ReversedX
+  | [@bs.as 0] Default
+  | [@bs.as 1] X;
+
+module Rank1:
+  Rank with type shape = (int, int) with type inputShape = int with
+    type padding = (int, int) with
+    type axis = _rank1Axis = {
   let rank = `R1;
   type shape = (int, int);
   type inputShape = int;
   type padding = (int, int);
-  [@bs.deriving jsConverter]
-  type axis =
-    | [@bs.as (-1)] ReversedX
-    | [@bs.as 0] Default
-    | [@bs.as 1] X;
+  type axis = _rank1Axis;
+  let axisToJs = _rank1AxisToJs;
+  let axisFromJs = _rank1AxisFromJs;
   let axisToInclusiveNegRankExclusiveRank = axis =>
     switch (axis) {
     | X => Default
@@ -87,18 +101,25 @@ module Rank1: Rank = {
   |];
 };
 
-module Rank2: Rank = {
+[@bs.deriving jsConverter]
+type _rank2Axis =
+  | [@bs.as (-2)] ReversedY
+  | [@bs.as (-1)] ReversedX
+  | [@bs.as 0] Default
+  | [@bs.as 1] X
+  | [@bs.as 2] Y;
+
+module Rank2:
+  Rank with type shape = (int, int, int) with type inputShape = (int, int) with
+    type padding = ((int, int), (int, int)) with
+    type axis = _rank2Axis = {
   let rank = `R2;
   type shape = (int, int, int);
   type inputShape = (int, int);
   type padding = ((int, int), (int, int));
-  [@bs.deriving jsConverter]
-  type axis =
-    | [@bs.as (-2)] ReversedY
-    | [@bs.as (-1)] ReversedX
-    | [@bs.as 0] Default
-    | [@bs.as 1] X
-    | [@bs.as 2] Y;
+  type axis = _rank2Axis;
+  let axisToJs = _rank2AxisToJs;
+  let axisFromJs = _rank2AxisFromJs;
   let axisToInclusiveNegRankExclusiveRank = axis =>
     switch (axis) {
     | Y => X
@@ -132,20 +153,28 @@ module Rank2: Rank = {
   |];
 };
 
-module Rank3: Rank = {
+[@bs.deriving jsConverter]
+type _rank3Axis =
+  | [@bs.as (-3)] ReversedZ
+  | [@bs.as (-2)] ReversedY
+  | [@bs.as (-1)] ReversedX
+  | [@bs.as 0] Default
+  | [@bs.as 1] X
+  | [@bs.as 2] Y
+  | [@bs.as 3] Z;
+
+module Rank3:
+  Rank with type shape = (int, int, int, int) with
+    type inputShape = (int, int, int) with
+    type padding = ((int, int), (int, int), (int, int)) with
+    type axis = _rank3Axis = {
   let rank = `R3;
   type shape = (int, int, int, int);
   type inputShape = (int, int, int);
   type padding = ((int, int), (int, int), (int, int));
-  [@bs.deriving jsConverter]
-  type axis =
-    | [@bs.as (-3)] ReversedZ
-    | [@bs.as (-2)] ReversedY
-    | [@bs.as (-1)] ReversedX
-    | [@bs.as 0] Default
-    | [@bs.as 1] X
-    | [@bs.as 2] Y
-    | [@bs.as 3] Z;
+  type axis = _rank3Axis;
+  let axisToJs = _rank3AxisToJs;
+  let axisFromJs = _rank3AxisFromJs;
   let axisToInclusiveNegRankExclusiveRank = axis =>
     switch (axis) {
     | Z => Y
@@ -192,22 +221,30 @@ module Rank3: Rank = {
   |];
 };
 
-module Rank4: Rank = {
+[@bs.deriving jsConverter]
+type _rank4Axis =
+  | [@bs.as (-4)] ReversedT
+  | [@bs.as (-3)] ReversedZ
+  | [@bs.as (-2)] ReversedY
+  | [@bs.as (-1)] ReversedX
+  | [@bs.as 0] Default
+  | [@bs.as 1] X
+  | [@bs.as 2] Y
+  | [@bs.as 3] Z
+  | [@bs.as 4] T;
+
+module Rank4:
+  Rank with type shape = (int, int, int, int, int) with
+    type inputShape = (int, int, int, int) with
+    type padding = ((int, int), (int, int), (int, int), (int, int)) with
+    type axis = _rank4Axis = {
   let rank = `R4;
   type inputShape = (int, int, int, int);
   type shape = (int, int, int, int, int);
   type padding = ((int, int), (int, int), (int, int), (int, int));
-  [@bs.deriving jsConverter]
-  type axis =
-    | [@bs.as (-4)] ReversedT
-    | [@bs.as (-3)] ReversedZ
-    | [@bs.as (-2)] ReversedY
-    | [@bs.as (-1)] ReversedX
-    | [@bs.as 0] Default
-    | [@bs.as 1] X
-    | [@bs.as 2] Y
-    | [@bs.as 3] Z
-    | [@bs.as 4] T;
+  type axis = _rank4Axis;
+  let axisToJs = _rank4AxisToJs;
+  let axisFromJs = _rank4AxisFromJs;
   let axisToInclusiveNegRankExclusiveRank = axis =>
     switch (axis) {
     | T => Z
@@ -613,7 +650,7 @@ module rec Tensor:
       external slice : (t, array(int), array(int)) => t = "";
       let slice = (t, start, size) =>
         slice(t, start |> R.getShapeArray, size |> R.getShapeArray);
-      [@bs.module "@tensorflow/tfsj"]
+      [@bs.module "@tensorflow/tfjs"]
       external split : (t, int) => array(t) = "";
       [@bs.module "@tensorflow/tfjs"]
       external splitAlongAxis : (t, int, int) => array(t) = "split";

@@ -16,10 +16,12 @@ module Configs =
        ) => {
   module SymbolicTensorIn = SymbolicTensor(Rin, Din);
   module SymbolicTensorOut = SymbolicTensor(Rout, Dout);
+  module Optimizer = Training.Optimizer(Rin, Din);
+  module Losses = Training.Losses(Rin, Din);
   type modelConfig = {
     .
-    "inputs": SymbolicTensorIn.t,
-    "outputs": SymbolicTensorOut.t,
+    "inputs": array(SymbolicTensorIn.t),
+    "outputs": array(SymbolicTensorOut.t),
     "name": Js.Undefined.t(string),
   };
   type inputConfig = {
@@ -48,6 +50,12 @@ module Configs =
     "stepsPerEpoch": Js.Undefined.t(int),
     "validationSteps": Js.Undefined.t(int),
   };
+  type compileConfig = {
+    .
+    /* TODO metrics */
+    "optimizer": Optimizer.t,
+    "loss": Losses.t,
+  };
   let callFnWithModelConfig =
       (fn: modelConfig => 'a, ~inputs, ~outputs, ~name=?, ()) =>
     {
@@ -57,10 +65,16 @@ module Configs =
     }
     |> fn;
   let callFnWithInputConfig =
-      (fn: inputConfig => 'a, ~shape, ~batchShape, ~name=?, ~sparse=?, ()) =>
+      (fn: inputConfig => 'a, ~shape=?, ~batchShape=?, ~name=?, ~sparse=?, ()) =>
     {
-      "shape": shape |> Js.Undefined.fromOption,
-      "batchShape": batchShape |> Js.Undefined.fromOption,
+      "shape":
+        shape
+        |. Belt.Option.map(Rin.getInputShapeArray)
+        |> Js.Undefined.fromOption,
+      "batchShape":
+        batchShape
+        |. Belt.Option.map(Rin.getShapeArray)
+        |> Js.Undefined.fromOption,
       "name": name |> Js.Undefined.fromOption,
       "sparse": sparse |> Js.Undefined.fromOption,
     }
@@ -119,6 +133,8 @@ module Configs =
       "validationSteps": validationSteps |> Js.Undefined.fromOption,
     }
     |> fn;
+  let callFnWithCompileConfig = (fn: compileConfig => 'a, ~optimizer, ~loss) =>
+    {"optimizer": optimizer, "loss": loss} |> fn;
 };
 
 module Model =
@@ -144,8 +160,8 @@ module Model =
   external loadModel : string => Js.Promise.t(model) = "";
   module Input = {
     [@bs.module "@tensorflow/tfjs"]
-    external input : Configs.inputConfig => SymbolicTensorIn.t = "";
-    let input = Configs.callFnWithInputConfig(input);
+    external make : Configs.inputConfig => SymbolicTensorIn.t = "input";
+    let make = Configs.callFnWithInputConfig(make);
   };
   [@bs.send]
   external compile :
@@ -159,12 +175,13 @@ module Model =
     ) =>
     compiledModel =
     "";
+  let compile = Configs.callFnWithCompileConfig(config => compile(_, config));
   [@bs.send]
   external evaluate :
     (
       compiledModel,
-      SymbolicTensorIn.t,
-      SymbolicTensorOut.t,
+      array(TensorIn.t),
+      array(TensorOut.t),
       Configs.evaluateOrPredictConfig
     ) =>
     Core.Scalar(Dout).t =
@@ -173,20 +190,19 @@ module Model =
     Configs.callFnWithEvaluateConfig(evaluate(compiledModel, x, y));
   [@bs.send]
   external predict :
-    (compiledModel, SymbolicTensorIn.t, Configs.evaluateOrPredictConfig) =>
-    TensorOut.t =
+    (model, array(TensorIn.t), Configs.evaluateOrPredictConfig) => TensorOut.t =
     "";
   let predict = (compiledModel, x) =>
     Configs.callFnWithPredictConfig(predict(compiledModel, x));
   [@bs.send]
-  external predictOnBatch : (compiledModel, SymbolicTensorIn.t) => TensorOut.t =
+  external predictOnBatch : (compiledModel, array(TensorIn.t)) => TensorOut.t =
     "";
   [@bs.send]
   external fit :
     (
       compiledModel,
-      SymbolicTensorIn.t,
-      SymbolicTensorOut.t,
+      array(TensorIn.t),
+      array(TensorOut.t),
       Configs.fitConfig
     ) =>
     Core.Scalar(Dout).t =
