@@ -1,12 +1,3 @@
-let init: unit => unit = [%raw
-  {|
-  function() {
-    require('@tensorflow/tfjs-node');
-    require('@tensorflow/tfjs').setBackend('tensorflow');
-  }
-|}
-];
-
 [@bs.deriving jsConverter]
 type rank = [ | `R0 | `R1 | `R2 | `R3 | `R4];
 
@@ -310,19 +301,24 @@ type dType = [ | `float32 | `int32 | `bool];
 
 module type DataType = {let dType: dType; type t; type typedArray;};
 
-module FloatDataType: DataType = {
+module FloatDataType:
+  DataType with type t = float with
+    type typedArray = Js.Typed_array.Float32Array.t = {
   let dType = `float32;
   type t = float;
   type typedArray = Js.Typed_array.Float32Array.t;
 };
 
-module IntDataType: DataType = {
+module IntDataType:
+  DataType with type t = int with type typedArray = Js.Typed_array.Int32Array.t = {
   let dType = `int32;
   type t = int;
   type typedArray = Js.Typed_array.Int32Array.t;
 };
 
-module BoolDataType: DataType = {
+module BoolDataType:
+  DataType with type t = int with
+    type typedArray = Js.Typed_array.Uint32Array.t = {
   let dType = `bool;
   type t = int;
   type typedArray = Js.Typed_array.Uint32Array.t;
@@ -340,8 +336,8 @@ module rec Tensor:
   {
     type t;
     type dataId;
-    type typedArray = D.typedArray;
-    type primitiveDataType = D.t;
+    type typedArray;
+    type primitiveDataType;
     module Create: {
       let tensor: typedArray => t;
       let clone: t => t;
@@ -431,7 +427,9 @@ module rec Tensor:
     /* TODO:
        https://js.tensorflow.org/api/0.9.0/#tf.Tensor.buffer
        */
-  } =
+  } with
+    type typedArray = D.typedArray with
+    type primitiveDataType = D.t =
   (R: Rank, D: DataType) => {
     type t;
     type dataId;
