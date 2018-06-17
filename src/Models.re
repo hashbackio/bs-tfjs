@@ -29,6 +29,7 @@ module Configs =
     "shape": Js.Undefined.t(array(int)),
     "batchShape": Js.Undefined.t(array(int)),
     "name": Js.Undefined.t(string),
+    "dtype": string,
     "sparse": Js.Undefined.t(bool),
   };
   type evaluateOrPredictConfig = {
@@ -77,6 +78,7 @@ module Configs =
         |> Js.Undefined.fromOption,
       "name": name |> Js.Undefined.fromOption,
       "sparse": sparse |> Js.Undefined.fromOption,
+      "dtype": Din.dType |> Core.dTypeToJs,
     }
     |> fn;
   let callFnWithEvaluateConfig =
