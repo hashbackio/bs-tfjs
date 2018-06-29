@@ -11,9 +11,6 @@
   "devDependencies": {
     "bs-platform": "^3.0.0"
   },
-  "engines": {
-    "node": ">=8.6.0"
-  },
   "homepage": "https://github.com/hashbackio/bs-tfjs#readme",
   "license": "MIT",
   "keywords": [
