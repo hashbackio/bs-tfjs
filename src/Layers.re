@@ -470,11 +470,12 @@ module Activations = (R: Core.Rank, D: Core.DataType) => {
     "thresohldedReLU";
 };
 
-module Basic = (R: Core.Rank, D: Core.DataType) => {
-  module LayerFunctor = Layer;
-  module Layer = Layer(R, R, D);
-  module Initializer = Initializers.Initializer(R, D);
-  module Configs = Configs(R, D);
+module Basic = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
+  module EmbeddingLayer = Layer(Core.Rank1, Core.Rank2, D);
+  module FlattenLayer = Layer(Rin, Core.Rank1, D);
+  module Layer = Layer(Rin, Rout, D);
+  module Initializer = Initializers.Initializer(Rin, D);
+  module Configs = Configs(Rin, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external activation : Configs.activationConfig => Layer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
@@ -482,13 +483,10 @@ module Basic = (R: Core.Rank, D: Core.DataType) => {
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external dropout : Configs.dropoutConfig => Layer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external embedding :
-    Configs.embeddingConfig => LayerFunctor(Core.Rank3)(Core.Rank4)(D).t =
-    "";
+  external embedding : Configs.embeddingConfig => EmbeddingLayer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external flatten : unit => LayerFunctor(R)(Core.Rank2)(D).t = "";
-  external flattenWithConfig :
-    Configs.inputConfig => LayerFunctor(R)(Core.Rank2)(D).t =
+  external flatten : unit => FlattenLayer.t = "";
+  external flattenWithConfig : Configs.inputConfig => FlattenLayer.t =
     "flatten";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external repeatVector : Configs.repeatVectorConfig => Layer.t = "";
@@ -1028,9 +1026,9 @@ module Pooling = (D: Core.DataType) => {
 };
 
 module Recurrent = (D: Core.DataType) => {
-  module Rnn2dLayer = Layer(Core.Rank3, Core.Rank3, D);
-  module RnnCell = RnnCell(Core.Rank2, Core.Rank2, D);
-  module Configs2dLayer = Configs(Core.Rank3, D);
+  module Rnn2dLayer = Layer(Core.Rank2, Core.Rank2, D);
+  module RnnCell = RnnCell(Core.Rank1, Core.Rank1, D);
+  module Configs2dLayer = Configs(Core.Rank2, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external gru : Configs2dLayer.gruConfig => Rnn2dLayer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
@@ -1072,4 +1070,13 @@ module Inputs = (D: Core.DataType) => {
   [@bs.module "@tensorflow/tfjs"]
   external input3dWithConfig : Configs3d.inputConfig => Input3dLayer.t =
     "input";
+};
+
+module Wrapper = (D: Core.DataType) => {
+  module Recurrent = Recurrent(D);
+  module Layer = Recurrent.Rnn2dLayer;
+  [@bs.deriving abstract]
+  type bidirectionalConfig = {layer: Layer.t};
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external bidirectional : bidirectionalConfig => Layer.t = "";
 };
