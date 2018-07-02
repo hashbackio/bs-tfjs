@@ -45,6 +45,7 @@ module Optimizer = (R: Core.Rank, D: Core.DataType) => {
 
 module Losses = (R: Core.Rank, D: Core.DataType) => {
   type t;
+  external _unsafeToT : 'a => t = "%identity";
   [@bs.deriving jsConverter]
   type reduction = [
     | [@bs.as "NONE"] `None
@@ -140,4 +141,5 @@ module Losses = (R: Core.Rank, D: Core.DataType) => {
   external softmaxCrossEntropy :
     (Core.Tensor(R)(D).t, Core.Tensor(R)(D).t) => t =
     "";
+  let binaryCrossentropy = () => "binaryCrossentropy" |> _unsafeToT;
 };
