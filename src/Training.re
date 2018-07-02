@@ -37,6 +37,7 @@ module Optimizer = (R: Core.Rank, D: Core.DataType) => {
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "train"]
   external adamaxWithOptions : (float, float, float, float, float) => t =
     "adamax";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "train"]
   external rmsprop : float => t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "train"]
   external rmspropWithOptions : (float, float, float, float, bool) => t =
