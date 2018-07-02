@@ -1,3 +1,4 @@
+/* TODO: Convert the convolutional layers to use bs.deriving abstract */
 [@bs.deriving jsConverter]
 type activationType = [
   | `elu
@@ -50,667 +51,423 @@ module RnnCell = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
 
 module Configs = (R: Core.Rank, D: Core.DataType) => {
   module Initializer = Initializers.Initializer(R, D);
+  module Tensor = Core.Tensor(R, D);
+  [@bs.deriving abstract]
   type inputConfig = {
-    .
-    "inputShape": Js.Undefined.t(array(int)),
-    "batchInputShape": Js.Undefined.t(array(int)),
-    "batchSize": Js.Undefined.t(int),
-    "dtype": Js.Undefined.t(string),
-    "name": Js.Undefined.t(string),
-    "trainable": Js.Undefined.t(bool),
-    "updatable": Js.Undefined.t(bool),
+    [@bs.optional]
+    inputShape: array(int),
+    [@bs.optional]
+    batchInputShape: array(int),
+    [@bs.optional]
+    batchSize: int,
+    [@bs.optional]
+    dtype: string,
+    [@bs.optional]
+    name: string,
+    [@bs.optional]
+    trainable: bool,
   };
+  [@bs.deriving abstract]
+  type activationConfig = {activation: string};
+  [@bs.deriving abstract]
+  type denseConfig = {
+    units: int,
+    [@bs.optional]
+    activation: string,
+    [@bs.optional]
+    useBias: bool,
+    [@bs.optional]
+    kernelInitializer: Initializer.ffi,
+    [@bs.optional]
+    biasInitializer: Initializer.ffi,
+    [@bs.optional]
+    inputDim: int,
+    [@bs.optional]
+    kernelConstraint: Constraints.ffi,
+    [@bs.optional]
+    biasConstraint: Constraints.ffi,
+    [@bs.optional]
+    kernelRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    biasRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    activityRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    name: string,
+    [@bs.optional]
+    trainable: bool,
+    [@bs.optional]
+    weights: array(Tensor.t),
+  };
+  [@bs.deriving abstract]
+  type dropoutConfig = {
+    rate: float,
+    [@bs.optional]
+    noiseShape: array(int),
+    [@bs.optional]
+    seed: int,
+  };
+  [@bs.deriving abstract]
+  type embeddingConfig = {
+    inputDim: int,
+    outputDim: int,
+    [@bs.optional]
+    embeddingsInitializer: Initializer.ffi,
+    [@bs.optional]
+    embeddingsRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    activityRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    embeddingsConstraint: Constraints.ffi,
+    [@bs.optional]
+    maskZero: bool,
+    [@bs.optional]
+    inputLength: int,
+    [@bs.optional]
+    name: string,
+    [@bs.optional]
+    trainable: bool,
+    [@bs.optional]
+    weights: array(Tensor.t),
+  };
+  [@bs.deriving abstract]
+  type repeatVectorConfig = {n: int};
+  [@bs.deriving abstract]
   type normalizeConfig = {
-    .
-    "axis": Js.Undefined.t(int),
-    "momentum": Js.Undefined.t(float),
-    "epsilon": Js.Undefined.t(float),
-    "center": Js.Undefined.t(bool),
-    "scale": Js.Undefined.t(bool),
-    "betaInitializer": Js.Undefined.t(Initializer.ffi),
-    "gammaInitializer": Js.Undefined.t(Initializer.ffi),
-    "movingMeanInitializer": Js.Undefined.t(Initializer.ffi),
-    "movingVarianceInitializer": Js.Undefined.t(Initializer.ffi),
-    "betaConstraint": Js.Undefined.t(Constraints.ffi),
-    "gammaConstraint": Js.Undefined.t(Constraints.ffi),
-    "betaRegularizer": Js.Undefined.t(Regularizers.ffi),
-    "gammaRegularizer": Js.Undefined.t(Regularizers.ffi),
+    [@bs.optional]
+    axis: int,
+    [@bs.optional]
+    momentum: float,
+    [@bs.optional]
+    epsilon: float,
+    [@bs.optional]
+    center: bool,
+    [@bs.optional]
+    scale: bool,
+    [@bs.optional]
+    betaInitializer: Initializer.ffi,
+    [@bs.optional]
+    gammaInitializer: Initializer.ffi,
+    [@bs.optional]
+    movingMeanInitializer: Initializer.ffi,
+    [@bs.optional]
+    movingVarianceInitializer: Initializer.ffi,
+    [@bs.optional]
+    betaConstraint: Constraints.ffi,
+    [@bs.optional]
+    gammaConstraint: Constraints.ffi,
+    [@bs.optional]
+    betaRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    gammaRegularizer: Regularizers.ffi,
   };
+  [@bs.deriving abstract]
   type poolingConfig = {
-    .
-    "poolSize": Js.Undefined.t(int),
-    "strides": Js.Undefined.t(int),
-    "padding": Js.Undefined.t(string),
-    "dataFormat": Js.Undefined.t(string),
+    [@bs.optional]
+    poolSize: int,
+    [@bs.optional]
+    strides: int,
+    [@bs.optional]
+    padding: string,
+    [@bs.optional]
+    dataFormat: string,
   };
-  type recurrentConfig = {
-    .
-    /* BaseRnnLayerConfig */
-    "cell": Js.Undefined.t(array(RnnCell(R)(R)(D).t)),
-    "returnSequences": Js.Undefined.t(bool),
-    "returnState": Js.Undefined.t(bool),
-    "goBackwards": Js.Undefined.t(bool),
-    "stateful": Js.Undefined.t(bool),
-    "unroll": Js.Undefined.t(bool),
-    "inputDim": Js.Undefined.t(int),
-    "inputLength": Js.Undefined.t(int),
-    /* SimpleRNNLayerConfig  */
-    "units": int,
-    "activation": Js.Undefined.t(string),
-    "useBias": Js.Undefined.t(bool),
-    "kernelInitializer": Js.Undefined.t(Initializer.ffi),
-    "recurrentInitializer": Js.Undefined.t(Initializer.ffi),
-    "biasInitializer": Js.Undefined.t(Initializer.ffi),
-    "kernelRegularizer": Js.Undefined.t(Regularizers.ffi),
-    "recurrentRegularizer": Js.Undefined.t(Regularizers.ffi),
-    "biasRegularizer": Js.Undefined.t(Regularizers.ffi),
-    "kernelConstraint": Js.Undefined.t(Constraints.ffi),
-    "recurrentConstraint": Js.Undefined.t(Constraints.ffi),
-    "biasConstraint": Js.Undefined.t(Constraints.ffi),
-    "dropout": Js.Undefined.t(float),
-    "recurrentDropout": Js.Undefined.t(float),
-    /* GRULayerConfig, GruCellLayerConfig, LSTMLayerConfig, LSTMCellLayerConfig */
-    "implementation": Js.Undefined.t(int),
-    /* GruCellLayerConfig, LSTMCellLayerConfig */
-    "recurrentActivation": Js.Undefined.t(string),
-    /* LSTMLayerConfig, LSTMCellLayerConfig */
-    "unitForgetBias": Js.Undefined.t(bool),
+  [@bs.deriving abstract]
+  type rnnConfig = {
+    [@bs.optional]
+    cell: array(RnnCell(R)(R)(D).t),
+    [@bs.optional]
+    returnSequences: bool,
+    [@bs.optional]
+    returnState: bool,
+    [@bs.optional]
+    goBackwards: bool,
+    [@bs.optional]
+    stateful: bool,
+    [@bs.optional]
+    unroll: bool,
+    [@bs.optional]
+    inputDim: int,
+    [@bs.optional]
+    inputLength: int,
   };
-  type stackedRnnCellsConfig = {. "cells": array(RnnCell(R)(R)(D).t)};
-  let callFnWithInputConfig =
-      (
-        fn,
-        ~inputShape=?,
-        ~batchInputShape=?,
-        ~batchSize=?,
-        ~dtype=?,
-        ~name=?,
-        ~trainable=?,
-        ~updatable=?,
-        (),
-      ) =>
-    {
-      "inputShape":
-        inputShape
-        |. Belt.Option.map(R.getShapeArray)
-        |> Js.Undefined.fromOption,
-      "batchInputShape":
-        batchInputShape
-        |. Belt.Option.map(R.getInputShapeArray)
-        |> Js.Undefined.fromOption,
-      "batchSize": batchSize |> Js.Undefined.fromOption,
-      "dtype":
-        dtype |. Belt.Option.map(Core.dTypeToJs) |> Js.Undefined.fromOption,
-      "name": name |> Js.Undefined.fromOption,
-      "trainable": trainable |> Js.Undefined.fromOption,
-      "updatable": updatable |> Js.Undefined.fromOption,
-    }
-    |> Js.Undefined.return
-    |> fn;
-  let callFnWithNormalizeConfig =
-      (
-        fn,
-        ~axis=?,
-        ~momentum=?,
-        ~epsilon=?,
-        ~center=?,
-        ~scale=?,
-        ~betaInitializer=?,
-        ~gammaInitializer=?,
-        ~movingMeanInitializer=?,
-        ~movingVarianceInitializer=?,
-        ~betaConstraint=?,
-        ~gammaConstraint=?,
-        ~betaRegularizer=?,
-        ~gammaRegularizer=?,
-        (),
-      ) =>
-    {
-      "axis":
-        axis
-        |. Belt.Option.map(R.axisToNegOneDefaultRank)
-        |. Belt.Option.map(R.axisToJs)
-        |> Js.Undefined.fromOption,
-      "momentum": momentum |> Js.Undefined.fromOption,
-      "epsilon": epsilon |> Js.Undefined.fromOption,
-      "center": center |> Js.Undefined.fromOption,
-      "scale": scale |> Js.Undefined.fromOption,
-      "betaInitializer":
-        betaInitializer
-        |. Belt.Option.map(Initializer.initializerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "gammaInitializer":
-        gammaInitializer
-        |. Belt.Option.map(Initializer.initializerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "movingMeanInitializer":
-        movingMeanInitializer
-        |. Belt.Option.map(Initializer.initializerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "movingVarianceInitializer":
-        movingVarianceInitializer
-        |. Belt.Option.map(Initializer.initializerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "betaConstraint":
-        betaConstraint
-        |. Belt.Option.map(Constraints.constraintTypesToJs)
-        |> Js.Undefined.fromOption,
-      "gammaConstraint":
-        gammaConstraint
-        |. Belt.Option.map(Constraints.constraintTypesToJs)
-        |> Js.Undefined.fromOption,
-      "betaRegularizer":
-        betaRegularizer
-        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "gammaRegularizer":
-        gammaRegularizer
-        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
-        |> Js.Undefined.fromOption,
-    }
-    |> Js.Undefined.return
-    |> fn;
-  let callFnWithPoolingConfig =
-      (fn, ~poolSize=?, ~strides=?, ~padding=?, ~dataFormat=?, ()) =>
-    {
-      "poolSize": poolSize |> Js.Undefined.fromOption,
-      "strides": strides |> Js.Undefined.fromOption,
-      "padding":
-        padding |. Belt.Option.map(paddingToJs) |> Js.Undefined.fromOption,
-      "dataFormat":
-        dataFormat
-        |. Belt.Option.map(dataFormatToJs)
-        |> Js.Undefined.fromOption,
-    }
-    |> Js.Undefined.return
-    |> fn;
-  let callFnWithRecurrentConfig =
-      (
-        fn,
-        ~units,
-        ~cell=?,
-        ~returnSequences=?,
-        ~returnState=?,
-        ~goBackwards=?,
-        ~stateful=?,
-        ~unroll=?,
-        ~inputDim=?,
-        ~inputLength=?,
-        ~activation=?,
-        ~useBias=?,
-        ~kernelInitializer=?,
-        ~recurrentInitializer=?,
-        ~biasInitializer=?,
-        ~kernelRegularizer=?,
-        ~recurrentRegularizer=?,
-        ~biasRegularizer=?,
-        ~kernelConstraint=?,
-        ~recurrentConstraint=?,
-        ~biasConstraint=?,
-        ~dropout=?,
-        ~recurrentDropout=?,
-        ~recurrentActivation=?,
-        ~unitForgetBias=?,
-        ~implementation=?,
-        (),
-      ) =>
-    (
-      {
-        "units": units,
-        "cell": cell |> Js.Undefined.fromOption,
-        "returnSequences": returnSequences |> Js.Undefined.fromOption,
-        "returnState": returnState |> Js.Undefined.fromOption,
-        "goBackwards": goBackwards |> Js.Undefined.fromOption,
-        "stateful": stateful |> Js.Undefined.fromOption,
-        "unroll": unroll |> Js.Undefined.fromOption,
-        "inputDim": inputDim |> Js.Undefined.fromOption,
-        "inputLength": inputLength |> Js.Undefined.fromOption,
-        "activation":
-          activation
-          |. Belt.Option.map(activationTypeToJs)
-          |> Js.Undefined.fromOption,
-        "useBias": useBias |> Js.Undefined.fromOption,
-        "kernelInitializer":
-          kernelInitializer
-          |. Belt.Option.map(Initializer.initializerTypeToJs)
-          |> Js.Undefined.fromOption,
-        "recurrentInitializer":
-          recurrentInitializer
-          |. Belt.Option.map(Initializer.initializerTypeToJs)
-          |> Js.Undefined.fromOption,
-        "biasInitializer":
-          biasInitializer
-          |. Belt.Option.map(Initializer.initializerTypeToJs)
-          |> Js.Undefined.fromOption,
-        "kernelRegularizer":
-          kernelRegularizer
-          |. Belt.Option.map(Regularizers.regularizerTypeToJs)
-          |> Js.Undefined.fromOption,
-        "recurrentRegularizer":
-          recurrentRegularizer
-          |. Belt.Option.map(Regularizers.regularizerTypeToJs)
-          |> Js.Undefined.fromOption,
-        "biasRegularizer":
-          biasRegularizer
-          |. Belt.Option.map(Regularizers.regularizerTypeToJs)
-          |> Js.Undefined.fromOption,
-        "kernelConstraint":
-          kernelConstraint
-          |. Belt.Option.map(Constraints.constraintTypesToJs)
-          |> Js.Undefined.fromOption,
-        "recurrentConstraint":
-          recurrentConstraint
-          |. Belt.Option.map(Constraints.constraintTypesToJs)
-          |> Js.Undefined.fromOption,
-        "biasConstraint":
-          biasConstraint
-          |. Belt.Option.map(Constraints.constraintTypesToJs)
-          |> Js.Undefined.fromOption,
-        "dropout": dropout |> Js.Undefined.fromOption,
-        "recurrentDropout": recurrentDropout |> Js.Undefined.fromOption,
-        "recurrentActivation":
-          recurrentActivation
-          |. Belt.Option.map(activationTypeToJs)
-          |> Js.Undefined.fromOption,
-        "unitForgetBias": unitForgetBias |> Js.Undefined.fromOption,
-        "implementation":
-          implementation
-          |. Belt.Option.map(implementationTypeToJs)
-          |> Js.Undefined.fromOption,
-      }: recurrentConfig
-    )
-    |> fn;
-  let callFnWithGruLayerConfig =
-      (
-        fn,
-        ~units,
-        ~cell=?,
-        ~returnSequences=?,
-        ~returnState=?,
-        ~goBackwards=?,
-        ~stateful=?,
-        ~unroll=?,
-        ~inputDim=?,
-        ~inputLength=?,
-        ~activation=?,
-        ~useBias=?,
-        ~kernelInitializer=?,
-        ~recurrentInitializer=?,
-        ~biasInitializer=?,
-        ~kernelRegularizer=?,
-        ~recurrentRegularizer=?,
-        ~biasRegularizer=?,
-        ~kernelConstraint=?,
-        ~recurrentConstraint=?,
-        ~biasConstraint=?,
-        ~dropout=?,
-        ~recurrentDropout=?,
-        ~implementation=?,
-        (),
-      ) =>
-    callFnWithRecurrentConfig(
-      fn,
-      ~units,
-      ~cell?,
-      ~returnSequences?,
-      ~returnState?,
-      ~goBackwards?,
-      ~stateful?,
-      ~unroll?,
-      ~inputDim?,
-      ~inputLength?,
-      ~activation?,
-      ~useBias?,
-      ~kernelInitializer?,
-      ~recurrentInitializer?,
-      ~biasInitializer?,
-      ~kernelRegularizer?,
-      ~recurrentRegularizer?,
-      ~biasRegularizer?,
-      ~kernelConstraint?,
-      ~recurrentConstraint?,
-      ~biasConstraint?,
-      ~dropout?,
-      ~recurrentDropout?,
-      ~implementation?,
-      (),
-    );
-  let callFnWithGruCellLayerConfig =
-      (
-        fn,
-        ~units,
-        ~cell=?,
-        ~returnSequences=?,
-        ~returnState=?,
-        ~goBackwards=?,
-        ~stateful=?,
-        ~unroll=?,
-        ~inputDim=?,
-        ~inputLength=?,
-        ~activation=?,
-        ~useBias=?,
-        ~kernelInitializer=?,
-        ~recurrentInitializer=?,
-        ~biasInitializer=?,
-        ~kernelRegularizer=?,
-        ~recurrentRegularizer=?,
-        ~biasRegularizer=?,
-        ~kernelConstraint=?,
-        ~recurrentConstraint=?,
-        ~biasConstraint=?,
-        ~dropout=?,
-        ~recurrentDropout=?,
-        ~recurrentActivation=?,
-        ~implementation=?,
-        (),
-      ) =>
-    callFnWithRecurrentConfig(
-      fn,
-      ~units,
-      ~cell?,
-      ~returnSequences?,
-      ~returnState?,
-      ~goBackwards?,
-      ~stateful?,
-      ~unroll?,
-      ~inputDim?,
-      ~inputLength?,
-      ~activation?,
-      ~useBias?,
-      ~kernelInitializer?,
-      ~recurrentInitializer?,
-      ~biasInitializer?,
-      ~kernelRegularizer?,
-      ~recurrentRegularizer?,
-      ~biasRegularizer?,
-      ~kernelConstraint?,
-      ~recurrentConstraint?,
-      ~biasConstraint?,
-      ~dropout?,
-      ~recurrentDropout?,
-      ~recurrentActivation?,
-      ~implementation?,
-      (),
-    );
-  let callFnWithLstmLayerConfig =
-      (
-        fn,
-        ~units,
-        ~cell=?,
-        ~returnSequences=?,
-        ~returnState=?,
-        ~goBackwards=?,
-        ~stateful=?,
-        ~unroll=?,
-        ~inputDim=?,
-        ~inputLength=?,
-        ~activation=?,
-        ~useBias=?,
-        ~kernelInitializer=?,
-        ~recurrentInitializer=?,
-        ~biasInitializer=?,
-        ~kernelRegularizer=?,
-        ~recurrentRegularizer=?,
-        ~biasRegularizer=?,
-        ~kernelConstraint=?,
-        ~recurrentConstraint=?,
-        ~biasConstraint=?,
-        ~dropout=?,
-        ~recurrentDropout=?,
-        ~unitForgetBias=?,
-        ~implementation=?,
-        (),
-      ) =>
-    callFnWithRecurrentConfig(
-      fn,
-      ~units,
-      ~cell?,
-      ~returnSequences?,
-      ~returnState?,
-      ~goBackwards?,
-      ~stateful?,
-      ~unroll?,
-      ~inputDim?,
-      ~inputLength?,
-      ~activation?,
-      ~useBias?,
-      ~kernelInitializer?,
-      ~recurrentInitializer?,
-      ~biasInitializer?,
-      ~kernelRegularizer?,
-      ~recurrentRegularizer?,
-      ~biasRegularizer?,
-      ~kernelConstraint?,
-      ~recurrentConstraint?,
-      ~biasConstraint?,
-      ~dropout?,
-      ~recurrentDropout?,
-      ~unitForgetBias?,
-      ~implementation?,
-      (),
-    );
-  let callFnWithLstmCellLayerConfig =
-      (
-        fn,
-        ~units,
-        ~cell=?,
-        ~returnSequences=?,
-        ~returnState=?,
-        ~goBackwards=?,
-        ~stateful=?,
-        ~unroll=?,
-        ~inputDim=?,
-        ~inputLength=?,
-        ~activation=?,
-        ~useBias=?,
-        ~kernelInitializer=?,
-        ~recurrentInitializer=?,
-        ~biasInitializer=?,
-        ~kernelRegularizer=?,
-        ~recurrentRegularizer=?,
-        ~biasRegularizer=?,
-        ~kernelConstraint=?,
-        ~recurrentConstraint=?,
-        ~biasConstraint=?,
-        ~dropout=?,
-        ~recurrentDropout=?,
-        ~recurrentActivation=?,
-        ~unitForgetBias=?,
-        ~implementation=?,
-        (),
-      ) =>
-    callFnWithRecurrentConfig(
-      fn,
-      ~units,
-      ~cell?,
-      ~returnSequences?,
-      ~returnState?,
-      ~goBackwards?,
-      ~stateful?,
-      ~unroll?,
-      ~inputDim?,
-      ~inputLength?,
-      ~activation?,
-      ~useBias?,
-      ~kernelInitializer?,
-      ~recurrentInitializer?,
-      ~biasInitializer?,
-      ~kernelRegularizer?,
-      ~recurrentRegularizer?,
-      ~biasRegularizer?,
-      ~kernelConstraint?,
-      ~recurrentConstraint?,
-      ~biasConstraint?,
-      ~dropout?,
-      ~recurrentDropout?,
-      ~recurrentActivation?,
-      ~unitForgetBias?,
-      ~implementation?,
-      (),
-    );
-  let callFnWithRnnLayerConfig =
-      (
-        fn,
-        ~cell,
-        ~returnSequences=?,
-        ~returnState=?,
-        ~goBackwards=?,
-        ~stateful=?,
-        ~unroll=?,
-        ~inputDim=?,
-        ~inputLength=?,
-        (),
-      ) =>
-    callFnWithRecurrentConfig(
-      fn,
-      ~cell,
-      ~returnSequences?,
-      ~returnState?,
-      ~goBackwards?,
-      ~stateful?,
-      ~unroll?,
-      ~inputDim?,
-      ~inputLength?,
-      (),
-    );
-  let callFnWithSimpleLayerConfig =
-      (
-        fn,
-        ~units,
-        ~cell=?,
-        ~returnSequences=?,
-        ~returnState=?,
-        ~goBackwards=?,
-        ~stateful=?,
-        ~unroll=?,
-        ~inputDim=?,
-        ~inputLength=?,
-        ~activation=?,
-        ~useBias=?,
-        ~kernelInitializer=?,
-        ~recurrentInitializer=?,
-        ~biasInitializer=?,
-        ~kernelRegularizer=?,
-        ~recurrentRegularizer=?,
-        ~biasRegularizer=?,
-        ~kernelConstraint=?,
-        ~recurrentConstraint=?,
-        ~biasConstraint=?,
-        ~dropout=?,
-        ~recurrentDropout=?,
-        (),
-      ) =>
-    callFnWithRecurrentConfig(
-      fn,
-      ~units,
-      ~cell?,
-      ~returnSequences?,
-      ~returnState?,
-      ~goBackwards?,
-      ~stateful?,
-      ~unroll?,
-      ~inputDim?,
-      ~inputLength?,
-      ~activation?,
-      ~useBias?,
-      ~kernelInitializer?,
-      ~recurrentInitializer?,
-      ~biasInitializer?,
-      ~kernelRegularizer?,
-      ~recurrentRegularizer?,
-      ~biasRegularizer?,
-      ~kernelConstraint?,
-      ~recurrentConstraint?,
-      ~biasConstraint?,
-      ~dropout?,
-      ~recurrentDropout?,
-      (),
-    );
-  let callFnWithSimpleCellLayerConfig =
-      (
-        fn,
-        ~units,
-        ~cell=?,
-        ~returnSequences=?,
-        ~returnState=?,
-        ~goBackwards=?,
-        ~stateful=?,
-        ~unroll=?,
-        ~inputDim=?,
-        ~inputLength=?,
-        ~activation=?,
-        ~useBias=?,
-        ~kernelInitializer=?,
-        ~recurrentInitializer=?,
-        ~biasInitializer=?,
-        ~kernelRegularizer=?,
-        ~recurrentRegularizer=?,
-        ~biasRegularizer=?,
-        ~kernelConstraint=?,
-        ~recurrentConstraint=?,
-        ~biasConstraint=?,
-        ~dropout=?,
-        ~recurrentDropout=?,
-        (),
-      ) =>
-    callFnWithRecurrentConfig(
-      fn,
-      ~units,
-      ~cell?,
-      ~returnSequences?,
-      ~returnState?,
-      ~goBackwards?,
-      ~stateful?,
-      ~unroll?,
-      ~inputDim?,
-      ~inputLength?,
-      ~activation?,
-      ~useBias?,
-      ~kernelInitializer?,
-      ~recurrentInitializer?,
-      ~biasInitializer?,
-      ~kernelRegularizer?,
-      ~recurrentRegularizer?,
-      ~biasRegularizer?,
-      ~kernelConstraint?,
-      ~recurrentConstraint?,
-      ~biasConstraint?,
-      ~dropout?,
-      ~recurrentDropout?,
-      (),
-    );
-  let callFnWithStackedCellsLayerConfig = (fn, ~cells, ()) =>
-    {"cells": cells} |> fn;
+  [@bs.deriving abstract]
+  type simpleRNNConfig = {
+    [@bs.optional]
+    cell: array(RnnCell(R)(R)(D).t),
+    [@bs.optional]
+    returnSequences: bool,
+    [@bs.optional]
+    returnState: bool,
+    [@bs.optional]
+    goBackwards: bool,
+    [@bs.optional]
+    stateful: bool,
+    [@bs.optional]
+    unroll: bool,
+    [@bs.optional]
+    inputDim: int,
+    [@bs.optional]
+    inputLength: int,
+    units: int,
+    [@bs.optional]
+    activation: string,
+    [@bs.optional]
+    useBias: bool,
+    [@bs.optional]
+    kernelInitializer: Initializer.ffi,
+    [@bs.optional]
+    recurrentInitializer: Initializer.ffi,
+    [@bs.optional]
+    biasInitializer: Initializer.ffi,
+    [@bs.optional]
+    kernelRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    recurrentRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    biasRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    kernelConstraint: Constraints.ffi,
+    [@bs.optional]
+    recurrentConstraint: Constraints.ffi,
+    [@bs.optional]
+    biasConstraint: Constraints.ffi,
+    [@bs.optional]
+    dropout: float,
+    [@bs.optional]
+    recurrentDropout: float,
+  };
+  [@bs.deriving abstract]
+  type gruConfig = {
+    [@bs.optional]
+    cell: array(RnnCell(R)(R)(D).t),
+    [@bs.optional]
+    returnSequences: bool,
+    [@bs.optional]
+    returnState: bool,
+    [@bs.optional]
+    goBackwards: bool,
+    [@bs.optional]
+    stateful: bool,
+    [@bs.optional]
+    unroll: bool,
+    [@bs.optional]
+    inputDim: int,
+    [@bs.optional]
+    inputLength: int,
+    units: int,
+    [@bs.optional]
+    activation: string,
+    [@bs.optional]
+    useBias: bool,
+    [@bs.optional]
+    kernelInitializer: Initializer.ffi,
+    [@bs.optional]
+    recurrentInitializer: Initializer.ffi,
+    [@bs.optional]
+    biasInitializer: Initializer.ffi,
+    [@bs.optional]
+    kernelRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    recurrentRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    biasRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    kernelConstraint: Constraints.ffi,
+    [@bs.optional]
+    recurrentConstraint: Constraints.ffi,
+    [@bs.optional]
+    biasConstraint: Constraints.ffi,
+    [@bs.optional]
+    dropout: float,
+    [@bs.optional]
+    recurrentDropout: float,
+    [@bs.optional]
+    implementation: int,
+  };
+  [@bs.deriving abstract]
+  type gruCellConfig = {
+    [@bs.optional]
+    cell: array(RnnCell(R)(R)(D).t),
+    [@bs.optional]
+    returnSequences: bool,
+    [@bs.optional]
+    returnState: bool,
+    [@bs.optional]
+    goBackwards: bool,
+    [@bs.optional]
+    stateful: bool,
+    [@bs.optional]
+    unroll: bool,
+    [@bs.optional]
+    inputDim: int,
+    [@bs.optional]
+    inputLength: int,
+    units: int,
+    [@bs.optional]
+    activation: string,
+    [@bs.optional]
+    useBias: bool,
+    [@bs.optional]
+    kernelInitializer: Initializer.ffi,
+    [@bs.optional]
+    recurrentInitializer: Initializer.ffi,
+    [@bs.optional]
+    biasInitializer: Initializer.ffi,
+    [@bs.optional]
+    kernelRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    recurrentRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    biasRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    kernelConstraint: Constraints.ffi,
+    [@bs.optional]
+    recurrentConstraint: Constraints.ffi,
+    [@bs.optional]
+    biasConstraint: Constraints.ffi,
+    [@bs.optional]
+    dropout: float,
+    [@bs.optional]
+    recurrentDropout: float,
+    [@bs.optional]
+    implementation: int,
+    [@bs.optional]
+    recurrentActivation: string,
+  };
+  [@bs.deriving abstract]
+  type lstmConfig = {
+    [@bs.optional]
+    cell: array(RnnCell(R)(R)(D).t),
+    [@bs.optional]
+    returnSequences: bool,
+    [@bs.optional]
+    returnState: bool,
+    [@bs.optional]
+    goBackwards: bool,
+    [@bs.optional]
+    stateful: bool,
+    [@bs.optional]
+    unroll: bool,
+    [@bs.optional]
+    inputDim: int,
+    [@bs.optional]
+    inputLength: int,
+    units: int,
+    [@bs.optional]
+    activation: string,
+    [@bs.optional]
+    useBias: bool,
+    [@bs.optional]
+    kernelInitializer: Initializer.ffi,
+    [@bs.optional]
+    recurrentInitializer: Initializer.ffi,
+    [@bs.optional]
+    biasInitializer: Initializer.ffi,
+    [@bs.optional]
+    kernelRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    recurrentRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    biasRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    kernelConstraint: Constraints.ffi,
+    [@bs.optional]
+    recurrentConstraint: Constraints.ffi,
+    [@bs.optional]
+    biasConstraint: Constraints.ffi,
+    [@bs.optional]
+    dropout: float,
+    [@bs.optional]
+    recurrentDropout: float,
+    [@bs.optional]
+    implementation: int,
+    [@bs.optional]
+    unitForgetBias: bool,
+  };
+  [@bs.deriving abstract]
+  type lstmCellConfig = {
+    [@bs.optional]
+    cell: array(RnnCell(R)(R)(D).t),
+    [@bs.optional]
+    returnSequences: bool,
+    [@bs.optional]
+    returnState: bool,
+    [@bs.optional]
+    goBackwards: bool,
+    [@bs.optional]
+    stateful: bool,
+    [@bs.optional]
+    unroll: bool,
+    [@bs.optional]
+    inputDim: int,
+    [@bs.optional]
+    inputLength: int,
+    units: int,
+    [@bs.optional]
+    activation: string,
+    [@bs.optional]
+    useBias: bool,
+    [@bs.optional]
+    kernelInitializer: Initializer.ffi,
+    [@bs.optional]
+    recurrentInitializer: Initializer.ffi,
+    [@bs.optional]
+    biasInitializer: Initializer.ffi,
+    [@bs.optional]
+    kernelRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    recurrentRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    biasRegularizer: Regularizers.ffi,
+    [@bs.optional]
+    kernelConstraint: Constraints.ffi,
+    [@bs.optional]
+    recurrentConstraint: Constraints.ffi,
+    [@bs.optional]
+    biasConstraint: Constraints.ffi,
+    [@bs.optional]
+    dropout: float,
+    [@bs.optional]
+    recurrentDropout: float,
+    [@bs.optional]
+    implementation: int,
+    [@bs.optional]
+    recurrentActivation: string,
+    [@bs.optional]
+    unitForgetBias: bool,
+  };
+  [@bs.deriving abstract]
+  type stackedRnnCellsConfig = {cells: array(RnnCell(R)(R)(D).t)};
 };
 
 module Activations = (R: Core.Rank, D: Core.DataType) => {
   module Layer = Layer(R, R, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external elu : unit => Layer.t = "";
+  [@bs.deriving abstract]
+  type eluConfig = {alpha: float};
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external eluWithAlpha : {. "alpha": float} => Layer.t = "elu";
-  let eluWithAlpha = alpha =>
-    {"alpha": alpha |> Js.Math.max_float(0.0)} |> eluWithAlpha;
+  external eluWithConfig : eluConfig => Layer.t = "elu";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external leakyReLU : unit => Layer.t = "";
+  [@bs.deriving abstract]
+  type leakyReLUConfig = {alpha: float};
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external leakyReLUWithAlpha : {. "alpha": float} => Layer.t = "leakyReLU";
-  let leakyReLUWithAlpha = alpha =>
-    {"alpha": alpha |> Js.Math.max_float(0.0)} |> leakyReLUWithAlpha;
+  external leakyReLUWithConfig : leakyReLUConfig => Layer.t = "leakyReLU";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external softmax : unit => Layer.t = "";
+  [@bs.deriving abstract]
+  type softmaxConfig = {axis: int};
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external softmaxWithAxis : {. "axis": int} => Layer.t = "softmax";
-  let softmaxWithAxis = axis =>
-    {"axis": axis |> R.axisToNegOneDefaultRank |> R.axisToJs}
-    |> softmaxWithAxis;
+  external softmaxWithConfig : softmaxConfig => Layer.t = "softmax";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external thresohldedReLU : unit => Layer.t = "";
+  external thresholdedReLU : unit => Layer.t = "";
+  [@bs.deriving abstract]
+  type thresholdedReLUConfig = {theta: float};
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external thresohldedReLUWithTheta : {. "theta": float} => Layer.t =
+  external thresholdedReLUWithConifg : thresholdedReLUConfig => Layer.t =
     "thresohldedReLU";
-  let thresohldedReLUWithTheta = theta =>
-    {"theta": theta |> Js.Math.max_float(0.0)} |> thresohldedReLUWithTheta;
 };
 
 module Basic = (R: Core.Rank, D: Core.DataType) => {
@@ -719,158 +476,22 @@ module Basic = (R: Core.Rank, D: Core.DataType) => {
   module Initializer = Initializers.Initializer(R, D);
   module Configs = Configs(R, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external activation : {. "activation": string} => Layer.t = "";
-  let activation = activationType =>
-    {"activation": activationType |> activationTypeToJs} |> activation;
+  external activation : Configs.activationConfig => Layer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external dense :
-    {
-      .
-      "units": int,
-      "activation": Js.Undefined.t(string),
-      "useBias": Js.Undefined.t(bool),
-      "kernelInitializer": Js.Undefined.t(Initializer.ffi),
-      "biasInitializer": Js.Undefined.t(Initializer.ffi),
-      "inputDim": Js.Undefined.t(int),
-      "kernelConstraint": Js.Undefined.t(Constraints.ffi),
-      "biasConstraint": Js.Undefined.t(Constraints.ffi),
-      "kernelRegularizer": Js.Undefined.t(Regularizers.ffi),
-      "biasRegularizer": Js.Undefined.t(Regularizers.ffi),
-      "activityRegularizer": Js.Undefined.t(Regularizers.ffi),
-    } =>
-    Layer.t =
-    "";
-  let dense =
-      (
-        units,
-        ~activation=?,
-        ~useBias=?,
-        ~kernelInitializer=?,
-        ~biasInitializer=?,
-        ~inputDim=?,
-        ~kernelConstraint=?,
-        ~biasConstraint=?,
-        ~kernelRegularizer=?,
-        ~biasRegularizer=?,
-        ~activityRegularizer=?,
-        (),
-      ) =>
-    {
-      "units": Js.Math.max_int(1, units),
-      "activation":
-        activation
-        |. Belt.Option.map(activationTypeToJs)
-        |> Js.Undefined.fromOption,
-      "useBias": useBias |> Js.Undefined.fromOption,
-      "kernelInitializer":
-        kernelInitializer
-        |. Belt.Option.map(Initializer.initializerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "biasInitializer":
-        biasInitializer
-        |. Belt.Option.map(Initializer.initializerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "inputDim": inputDim |> Js.Undefined.fromOption,
-      "kernelConstraint":
-        kernelConstraint
-        |. Belt.Option.map(Constraints.constraintTypesToJs)
-        |> Js.Undefined.fromOption,
-      "biasConstraint":
-        biasConstraint
-        |. Belt.Option.map(Constraints.constraintTypesToJs)
-        |> Js.Undefined.fromOption,
-      "kernelRegularizer":
-        kernelRegularizer
-        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "biasRegularizer":
-        biasRegularizer
-        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "activityRegularizer":
-        activityRegularizer
-        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
-        |> Js.Undefined.fromOption,
-    }
-    |> dense;
+  external dense : Configs.denseConfig => Layer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external dropout :
-    {
-      .
-      "rate": float,
-      "noiseShape": Js.Undefined.t(array(int)),
-      "seed": Js.Undefined.t(int),
-    } =>
-    Layer.t =
-    "";
-  let dropout = (rate, ~noiseShape=?, ~seed=?, ()) =>
-    {
-      "rate": rate |> Js.Math.max_float(0.0) |> Js.Math.min_float(1.0),
-      "noiseShape":
-        noiseShape
-        |. Belt.Option.map(R.getShapeArray)
-        |> Js.Undefined.fromOption,
-      "seed": seed |> Js.Undefined.fromOption,
-    }
-    |> dropout;
+  external dropout : Configs.dropoutConfig => Layer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external embedding :
-    {
-      .
-      "inputDim": int,
-      "outputDim": int,
-      "embeddingsInitializer": Js.Undefined.t(Initializer.ffi),
-      "embeddingsRegularizer": Js.Undefined.t(Regularizers.ffi),
-      "activityRegularizer": Js.Undefined.t(Regularizers.ffi),
-      "embeddingsConstraint": Js.Undefined.t(Constraints.ffi),
-      "maskZero": Js.Undefined.t(bool),
-      "inputLength": Js.Undefined.t(int),
-    } =>
-    LayerFunctor(Core.Rank3)(Core.Rank4)(D).t =
+    Configs.embeddingConfig => LayerFunctor(Core.Rank3)(Core.Rank4)(D).t =
     "";
-  let embedding =
-      (
-        inputDim,
-        outputDim,
-        ~embeddingsInitializer=?,
-        ~embeddingsRegularizer=?,
-        ~activityRegularizer=?,
-        ~embeddingsConstraint=?,
-        ~maskZero=?,
-        ~inputLength=?,
-        (),
-      ) =>
-    {
-      "inputDim": inputDim |> Js.Math.max_int(1),
-      "outputDim": outputDim |> Js.Math.max_int(0),
-      "embeddingsInitializer":
-        embeddingsInitializer
-        |. Belt.Option.map(Initializer.initializerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "embeddingsRegularizer":
-        embeddingsRegularizer
-        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "activityRegularizer":
-        activityRegularizer
-        |. Belt.Option.map(Regularizers.regularizerTypeToJs)
-        |> Js.Undefined.fromOption,
-      "embeddingsConstraint":
-        embeddingsConstraint
-        |. Belt.Option.map(Constraints.constraintTypesToJs)
-        |> Js.Undefined.fromOption,
-      "maskZero": maskZero |> Js.Undefined.fromOption,
-      "inputLength": inputLength |> Js.Undefined.fromOption,
-    }
-    |> embedding;
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external flatten :
-    Js.Undefined.t(Configs.inputConfig) => LayerFunctor(R)(Core.Rank2)(D).t =
-    "";
-  let flatten = Configs.callFnWithInputConfig(flatten);
+  external flatten : unit => LayerFunctor(R)(Core.Rank2)(D).t = "";
+  external flattenWithConfig :
+    Configs.inputConfig => LayerFunctor(R)(Core.Rank2)(D).t =
+    "flatten";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external repeatVector : {. "n": int} => Layer.t = "";
-  let repeatVector = n => {"n": n} |> repeatVector;
+  external repeatVector : Configs.repeatVectorConfig => Layer.t = "";
 };
 
 module Convolutional = (D: Core.DataType) => {
@@ -1304,39 +925,45 @@ module Merge = (R: Core.Rank, D: Core.DataType) => {
   module Layer = Layer(R, R, D);
   module Configs = Configs(R, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external add : Js.Undefined.t(Configs.inputConfig) => Layer.t = "";
-  let add = Configs.callFnWithInputConfig(add);
+  external add : unit => Layer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external average : Js.Undefined.t(Configs.inputConfig) => Layer.t = "";
-  let average = Configs.callFnWithInputConfig(average);
+  external addWithConfig : Configs.inputConfig => Layer.t = "add";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external concatenate :
-    Js.Undefined.t({. "axis": Js.Undefined.t(int)}) => Layer.t =
-    "";
-  let concatenate = (~axis=?, ()) =>
-    {"axis": axis |. Belt.Option.map(R.axisToJs) |> Js.Undefined.fromOption}
-    |> Js.Undefined.return
-    |> concatenate;
+  external average : unit => Layer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external maximum : Js.Undefined.t(Configs.inputConfig) => Layer.t = "";
-  let maximum = Configs.callFnWithInputConfig(maximum);
+  external averageWithConfig : Configs.inputConfig => Layer.t = "average";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external minimum : Js.Undefined.t(Configs.inputConfig) => Layer.t = "";
-  let minimum = Configs.callFnWithInputConfig(minimum);
+  external concatenate : unit => Layer.t = "";
+  [@bs.deriving abstract]
+  type concatenateConfig = {
+    [@bs.optional]
+    axis: int,
+  };
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external multiply : Js.Undefined.t(Configs.inputConfig) => Layer.t = "";
-  let multiply = Configs.callFnWithInputConfig(multiply);
+  external concatenateWithConfig : concatenateConfig => Layer.t =
+    "concatenate";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external maximum : unit => Layer.t = "";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external maximumWithConfig : Configs.inputConfig => Layer.t = "maximum";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external minimum : unit => Layer.t = "";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external minimumWithConfig : Configs.inputConfig => Layer.t = "minimum";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external multiply : unit => Layer.t = "";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external multiplyWithConfig : Configs.inputConfig => Layer.t = "multiply";
 };
 
 module Normalization = (R: Core.Rank, D: Core.DataType) => {
   module Layer = Layer(R, R, D);
   module Configs = Configs(R, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external batchNormalization :
-    Js.Undefined.t(Configs.normalizeConfig) => Layer.t =
-    "";
-  let batchNormalization =
-    Configs.callFnWithNormalizeConfig(batchNormalization);
+  external batchNormalization : unit => Layer.t = "";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external batchNormalizationWithConfig : Configs.normalizeConfig => Layer.t =
+    "batchNormalization";
 };
 
 module Pooling = (D: Core.DataType) => {
@@ -1346,67 +973,58 @@ module Pooling = (D: Core.DataType) => {
   module Configs1dLayer = Configs(Core.Rank3, D);
   module Configs2dLayer = Configs(Core.Rank4, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external averagePooling1d :
-    Js.Undefined.t(Configs1dLayer.poolingConfig) => Conv1dLayer.t =
-    "";
-  let averagePooling1d =
-    Configs1dLayer.callFnWithPoolingConfig(averagePooling1d);
+  external averagePooling1d : unit => Conv1dLayer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external averagePooling2d :
-    Js.Undefined.t(Configs2dLayer.poolingConfig) => Conv2dLayer.t =
-    "";
-  let averagePooling2d =
-    Configs2dLayer.callFnWithPoolingConfig(averagePooling2d);
+  external averagePooling1dWithConfig :
+    Configs1dLayer.poolingConfig => Conv1dLayer.t =
+    "averagePooling1d";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external globalAveragePooling1d :
-    Js.Undefined.t(Configs1dLayer.poolingConfig) => Conv1dDownRankLayer.t =
-    "";
-  let globalAveragePooling1d =
-    Configs1dLayer.callFnWithPoolingConfig(globalAveragePooling1d);
+  external averagePooling2d : unit => Conv2dLayer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external globalAveragePooling2d :
-    Js.Undefined.t({. "dataFormat": Js.Undefined.t(string)}) =>
-    Conv2dLayer.t =
-    "";
-  let globalAveragePooling2d = (~dataFormat=?, ()) =>
-    {
-      "dataFormat":
-        dataFormat
-        |. Belt.Option.map(dataFormatToJs)
-        |> Js.Undefined.fromOption,
-    }
-    |> Js.Undefined.return
-    |> globalAveragePooling2d;
+  external averagePooling2dWithConfig :
+    Configs2dLayer.poolingConfig => Conv2dLayer.t =
+    "averagePooling2d";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external globalMaxPooling1d :
-    Js.Undefined.t(Configs1dLayer.poolingConfig) => Conv1dDownRankLayer.t =
-    "";
-  let globalMaxPooling1d =
-    Configs1dLayer.callFnWithPoolingConfig(globalMaxPooling1d);
+  external globalAveragePooling1d : unit => Conv1dDownRankLayer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external globalMaxPooling2d :
-    Js.Undefined.t({. "dataFormat": Js.Undefined.t(string)}) =>
-    Conv2dLayer.t =
-    "";
-  let globalMaxPooling2d = (~dataFormat=?, ()) =>
-    {
-      "dataFormat":
-        dataFormat
-        |. Belt.Option.map(dataFormatToJs)
-        |> Js.Undefined.fromOption,
-    }
-    |> Js.Undefined.return
-    |> globalMaxPooling2d;
+  external globalAveragePooling1dWithConfig :
+    Configs1dLayer.poolingConfig => Conv1dDownRankLayer.t =
+    "globalAveragePooling1d";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external maxPooling1d :
-    Js.Undefined.t(Configs1dLayer.poolingConfig) => Conv1dLayer.t =
-    "";
-  let maxPooling1d = Configs1dLayer.callFnWithPoolingConfig(maxPooling1d);
+  external globalAveragePooling2d : unit => Conv2dLayer.t = "";
+  [@bs.deriving abstract]
+  type globalPooling2dConfig = {
+    [@bs.optional]
+    dataFormat: string,
+  };
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external maxPooling2d :
-    Js.Undefined.t(Configs2dLayer.poolingConfig) => Conv2dLayer.t =
-    "";
-  let maxPooling2d = Configs2dLayer.callFnWithPoolingConfig(maxPooling2d);
+  external globalAveragePooling2dWithConfig :
+    globalPooling2dConfig => Conv2dLayer.t =
+    "globalAveragePooling2d";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external globalMaxPooling1d : unit => Conv1dDownRankLayer.t = "";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external globalMaxPooling1dWithConfig :
+    Configs1dLayer.poolingConfig => Conv1dDownRankLayer.t =
+    "globalMaxPooling1d";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external globalMaxPooling2d : unit => Conv2dLayer.t = "";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external globalMaxPooling2dWithConfig :
+    globalPooling2dConfig => Conv2dLayer.t =
+    "globalMaxPooling2d";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external maxPooling1d : unit => Conv1dLayer.t = "";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external maxPooling1dWithConfig :
+    Configs1dLayer.poolingConfig => Conv1dLayer.t =
+    "maxPooling1d";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external maxPooling2d : unit => Conv2dLayer.t = "";
+  [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
+  external maxPooling2dWithConfig :
+    Configs2dLayer.poolingConfig => Conv2dLayer.t =
+    "maxPooling2d";
 };
 
 module Recurrent = (D: Core.DataType) => {
@@ -1414,32 +1032,22 @@ module Recurrent = (D: Core.DataType) => {
   module RnnCell = RnnCell(Core.Rank2, Core.Rank2, D);
   module Configs2dLayer = Configs(Core.Rank3, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external gru : Configs2dLayer.recurrentConfig => Rnn2dLayer.t = "";
-  let gru = Configs2dLayer.callFnWithGruLayerConfig(gru);
+  external gru : Configs2dLayer.gruConfig => Rnn2dLayer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external gruCell : Configs2dLayer.recurrentConfig => RnnCell.t = "";
-  let gruCell = Configs2dLayer.callFnWithGruCellLayerConfig(gruCell);
+  external gruCell : Configs2dLayer.gruCellConfig => RnnCell.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external lstm : Configs2dLayer.recurrentConfig => Rnn2dLayer.t = "";
-  let lstm = Configs2dLayer.callFnWithLstmLayerConfig(lstm);
+  external lstm : Configs2dLayer.lstmConfig => Rnn2dLayer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external lstmCell : Configs2dLayer.recurrentConfig => RnnCell.t = "";
-  let lstmCell = Configs2dLayer.callFnWithLstmCellLayerConfig(lstmCell);
+  external lstmCell : Configs2dLayer.lstmCellConfig => RnnCell.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external rnn : Configs2dLayer.recurrentConfig => Rnn2dLayer.t = "";
-  let rnn = Configs2dLayer.callFnWithRnnLayerConfig(rnn);
+  external rnn : Configs2dLayer.rnnConfig => Rnn2dLayer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external simpleRNN : Configs2dLayer.recurrentConfig => Rnn2dLayer.t = "";
-  let simpleRNN = Configs2dLayer.callFnWithSimpleLayerConfig(simpleRNN);
+  external simpleRNN : Configs2dLayer.simpleRNNConfig => Rnn2dLayer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
-  external simpleRNNCell : Configs2dLayer.recurrentConfig => RnnCell.t = "";
-  let simpleRNNCell =
-    Configs2dLayer.callFnWithSimpleCellLayerConfig(simpleRNNCell);
+  external simpleRNNCell : Configs2dLayer.simpleRNNConfig => RnnCell.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external stackedRNNCells : Configs2dLayer.stackedRnnCellsConfig => RnnCell.t =
     "";
-  let stackedRNNCells =
-    Configs2dLayer.callFnWithStackedCellsLayerConfig(stackedRNNCells);
 };
 
 module Inputs = (D: Core.DataType) => {
@@ -1450,15 +1058,18 @@ module Inputs = (D: Core.DataType) => {
   module Configs2d = Configs(Core.Rank2, D);
   module Configs3d = Configs(Core.Rank3, D);
   [@bs.module "@tensorflow/tfjs"]
-  external input1d : Js.Undefined.t(Configs1d.inputConfig) => Input1dLayer.t =
-    "input";
-  let input1d = Configs1d.callFnWithInputConfig(input1d);
+  external input1d : unit => Input1dLayer.t = "input";
   [@bs.module "@tensorflow/tfjs"]
-  external input2d : Js.Undefined.t(Configs2d.inputConfig) => Input2dLayer.t =
+  external input1dWithConfig : Configs1d.inputConfig => Input1dLayer.t =
     "input";
-  let input2d = Configs2d.callFnWithInputConfig(input2d);
   [@bs.module "@tensorflow/tfjs"]
-  external input3d : Js.Undefined.t(Configs3d.inputConfig) => Input3dLayer.t =
+  external input2d : unit => Input2dLayer.t = "input";
+  [@bs.module "@tensorflow/tfjs"]
+  external input2dWithConfig : Configs2d.inputConfig => Input2dLayer.t =
     "input";
-  let input3d = Configs3d.callFnWithInputConfig(input3d);
+  [@bs.module "@tensorflow/tfjs"]
+  external input3d : unit => Input3dLayer.t = "input";
+  [@bs.module "@tensorflow/tfjs"]
+  external input3dWithConfig : Configs3d.inputConfig => Input3dLayer.t =
+    "input";
 };

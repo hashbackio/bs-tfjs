@@ -1,3 +1,4 @@
+/* TODO: Convert all of the options in this file to bs.deriving abstract */
 [@bs.deriving jsConverter]
 type varianceScalingMode = [ | `fanIn | `fanOut | `fanAvg];
 

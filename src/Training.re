@@ -1,3 +1,4 @@
+/* TODO: Convert all of the options in this file to bs.deriving abstract */
 module Optimizer = (R: Core.Rank, D: Core.DataType) => {
   type t;
   [@bs.send]
