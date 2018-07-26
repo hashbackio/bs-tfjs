@@ -37,7 +37,6 @@ module Layer = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
   external applyMany :
     (t, array(SymbolicTensorIn.t)) => array(SymbolicTensorOut.t) =
     "apply";
-  [@bs.send] external applyWithTensor : (t, TensorIn.t) => TensorOut.t = "";
 };
 
 module RnnCell = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
@@ -1052,26 +1051,26 @@ module Recurrent = (D: Core.DataType) => {
 };
 
 module Inputs = (D: Core.DataType) => {
-  module Input1dLayer = Layer(Core.Rank1, Core.Rank2, D);
-  module Input2dLayer = Layer(Core.Rank2, Core.Rank3, D);
-  module Input3dLayer = Layer(Core.Rank3, Core.Rank4, D);
+  module Input1dTensor = Models.SymbolicTensor(Core.Rank1, D);
+  module Input2dTensor = Models.SymbolicTensor(Core.Rank2, D);
+  module Input3dTensor = Models.SymbolicTensor(Core.Rank3, D);
   module Configs1d = Configs(Core.Rank1, D);
   module Configs2d = Configs(Core.Rank2, D);
   module Configs3d = Configs(Core.Rank3, D);
   [@bs.module "@tensorflow/tfjs"]
-  external input1d : unit => Input1dLayer.t = "input";
+  external input1d : unit => Input1dTensor.t = "input";
   [@bs.module "@tensorflow/tfjs"]
-  external input1dWithConfig : Configs1d.inputConfig => Input1dLayer.t =
+  external input1dWithConfig : Configs1d.inputConfig => Input1dTensor.t =
     "input";
   [@bs.module "@tensorflow/tfjs"]
-  external input2d : unit => Input2dLayer.t = "input";
+  external input2d : unit => Input2dTensor.t = "input";
   [@bs.module "@tensorflow/tfjs"]
-  external input2dWithConfig : Configs2d.inputConfig => Input2dLayer.t =
+  external input2dWithConfig : Configs2d.inputConfig => Input2dTensor.t =
     "input";
   [@bs.module "@tensorflow/tfjs"]
-  external input3d : unit => Input3dLayer.t = "input";
+  external input3d : unit => Input3dTensor.t = "input";
   [@bs.module "@tensorflow/tfjs"]
-  external input3dWithConfig : Configs3d.inputConfig => Input3dLayer.t =
+  external input3dWithConfig : Configs3d.inputConfig => Input3dTensor.t =
     "input";
 };
 
