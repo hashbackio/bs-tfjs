@@ -676,7 +676,7 @@ module rec Tensor:
     [@bs.send] external dataSync : t => D.typedArray = "";
     [@bs.send] external dispose : t => unit = "";
     [@bs.send] external print : t => unit = "";
-    [@bs.send] external shape : t => array(int) = "";
+    [@bs.get] external shape : t => array(int) = "";
     [@bs.send]
     external printVerbose : (t, [@bs.as {json|true|json}] _) => unit = "print";
     [@bs.send] external toString : t => string = "";
