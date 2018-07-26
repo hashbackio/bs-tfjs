@@ -28,6 +28,8 @@ type implementationType =
 module Layer = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
   module SymbolicTensorIn = Models.SymbolicTensor(Rin, D);
   module SymbolicTensorOut = Models.SymbolicTensor(Rout, D);
+  module TensorIn = Core.Tensor(Rin, D);
+  module TensorOut = Core.Tensor(Rout, D);
   type t;
   [@bs.send]
   external apply : (t, SymbolicTensorIn.t) => SymbolicTensorOut.t = "";
@@ -35,6 +37,7 @@ module Layer = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
   external applyMany :
     (t, array(SymbolicTensorIn.t)) => array(SymbolicTensorOut.t) =
     "apply";
+  [@bs.send] external applyWithTensor : (t, TensorIn.t) => TensorOut.t = "";
 };
 
 module RnnCell = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
