@@ -55,7 +55,7 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
   [@bs.deriving abstract]
   type inputConfig = {
     [@bs.optional]
-    inputShape: array(int),
+    shape: array(int),
     [@bs.optional]
     batchInputShape: array(int),
     [@bs.optional]
