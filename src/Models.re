@@ -106,8 +106,13 @@ module Model =
     [@bs.module "@tensorflow/tfjs"]
     external make : Configs.inputConfig => SymbolicTensorIn.t = "input";
   };
-  [@bs.send]
-  external compile : (model, Configs.compileConfig) => compiledModel = "";
+  external _unsafeToCompiledModel: 'a => compiledModel = "%identity";
+  [@bs.send] external compile : (model, Configs.compileConfig) => unit = "";
+  let compile: (model, Configs.compileConfig) => compiledModel =
+    (model, config) => {
+      compile(model, config);
+      model |> _unsafeToCompiledModel;
+    };
   [@bs.send]
   external evaluate :
     (
