@@ -20,6 +20,13 @@ module Configs =
   module Losses = Training.Losses(Rin, Din);
   [@bs.deriving abstract]
   type modelConfig = {
+    inputs: SymbolicTensorIn.t,
+    outputs: SymbolicTensorOut.t,
+    [@bs.optional]
+    name: string,
+  };
+  [@bs.deriving abstract]
+  type modelConfigWithArrays = {
     inputs: array(SymbolicTensorIn.t),
     outputs: array(SymbolicTensorOut.t),
     [@bs.optional]
