@@ -1078,7 +1078,10 @@ module Wrapper = (D: Core.DataType) => {
   module Recurrent = Recurrent(D);
   module Layer = Recurrent.Rnn2dLayer;
   [@bs.deriving abstract]
-  type bidirectionalConfig = {layer: Layer.t};
+  type bidirectionalConfig = {
+    layer: Layer.t,
+    mergeMode: string,
+  };
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external bidirectional : bidirectionalConfig => Layer.t = "";
 };
