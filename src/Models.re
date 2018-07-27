@@ -76,9 +76,9 @@ module Configs =
   };
   [@bs.deriving abstract]
   type compileConfig = {
-    /* TODO metrics */
     optimizer: Optimizer.t,
     loss: Losses.t,
+    metrics: array(string),
   };
 };
 
