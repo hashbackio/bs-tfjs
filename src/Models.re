@@ -125,7 +125,8 @@ module Model =
     "";
   [@bs.send]
   external predict :
-    (model, array(TensorIn.t), Configs.evaluateOrPredictConfig) => TensorOut.t =
+    (compiledModel, array(TensorIn.t), Configs.evaluateOrPredictConfig) =>
+    TensorOut.t =
     "";
   [@bs.send]
   external predictOnBatch : (compiledModel, array(TensorIn.t)) => TensorOut.t =
