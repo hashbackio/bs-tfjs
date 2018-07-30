@@ -339,7 +339,7 @@ module rec Tensor:
     type typedArray;
     type primitiveDataType;
     module Create: {
-      let tensor: typedArray => t;
+      let tensor: (typedArray, R.shape) => t;
       let clone: t => t;
       let fill: (R.shape, D.t) => t;
       let linspace: (float, float, float) => Tensor(Rank1)(FloatDataType).t;
@@ -437,7 +437,8 @@ module rec Tensor:
     type typedArray = D.typedArray;
     type primitiveDataType = D.t;
     module Create = {
-      [@bs.module "@tensorflow/tfjs"] external tensor : typedArray => t = "";
+      [@bs.module "@tensorflow/tfjs"]
+      external tensor : (typedArray, R.shape) => t = "";
       [@bs.module "@tensorflow/tfjs"] external clone : t => t = "";
       [@bs.module "@tensorflow/tfjs"]
       external fill : (array(int), D.t, string) => t = "";
