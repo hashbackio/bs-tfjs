@@ -139,6 +139,6 @@ module Model =
       array(TensorOut.t),
       Configs.fitConfig
     ) =>
-    Js.Promise.t(Core.Scalar(Dout).t) =
+    Js.Promise.t(unit) =
     "";
 };
