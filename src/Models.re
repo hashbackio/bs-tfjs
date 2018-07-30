@@ -133,12 +133,7 @@ module Model =
     "";
   [@bs.send]
   external fit :
-    (
-      compiledModel,
-      array(TensorIn.t),
-      array(TensorOut.t),
-      Configs.fitConfig
-    ) =>
+    (compiledModel, TensorIn.t, TensorOut.t, Configs.fitConfig) =>
     Js.Promise.t(unit) =
     "";
 };
