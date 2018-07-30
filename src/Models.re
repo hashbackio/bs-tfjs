@@ -106,7 +106,7 @@ module Model =
     [@bs.module "@tensorflow/tfjs"]
     external make : Configs.inputConfig => SymbolicTensorIn.t = "input";
   };
-  external _unsafeToCompiledModel: 'a => compiledModel = "%identity";
+  external _unsafeToCompiledModel : 'a => compiledModel = "%identity";
   [@bs.send] external compile : (model, Configs.compileConfig) => unit = "";
   let compile: (model, Configs.compileConfig) => compiledModel =
     (model, config) => {
@@ -138,6 +138,6 @@ module Model =
       array(TensorOut.t),
       Configs.fitConfig
     ) =>
-    Core.Scalar(Dout).t =
+    Js.Promise.t(Core.Scalar(Dout).t) =
     "";
 };
