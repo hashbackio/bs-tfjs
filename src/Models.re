@@ -98,6 +98,7 @@ module Model =
   module TensorOut = Core.Tensor(Rout, Dout);
   type model;
   type compiledModel;
+  type weights;
   [@bs.module "@tensorflow/tfjs"]
   external make : Configs.modelConfig => model = "model";
   [@bs.module "@tensorflow/tfjs"]
@@ -123,6 +124,8 @@ module Model =
     ) =>
     Core.Scalar(Dout).t =
     "";
+  [@bs.send] external getWeights : compiledModel => weights = "";
+  [@bs.send] external setWeights : (compiledModel, weights) => unit = "";
   [@bs.send]
   external predict :
     (compiledModel, TensorIn.t, Configs.evaluateOrPredictConfig) => TensorOut.t =
