@@ -25,11 +25,17 @@ type implementationType =
   | [@bs.as 1] Mode1
   | [@bs.as 2] Mode2;
 
-module Layer = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
-  module SymbolicTensorIn = Models.SymbolicTensor(Rin, D);
-  module SymbolicTensorOut = Models.SymbolicTensor(Rout, D);
-  module TensorIn = Core.Tensor(Rin, D);
-  module TensorOut = Core.Tensor(Rout, D);
+module Layer =
+       (
+         Rin: Core.Rank,
+         Rout: Core.Rank,
+         Din: Core.DataType,
+         Dout: Core.DataType,
+       ) => {
+  module SymbolicTensorIn = Models.SymbolicTensor(Rin, Din);
+  module SymbolicTensorOut = Models.SymbolicTensor(Rout, Dout);
+  module TensorIn = Core.Tensor(Rin, Din);
+  module TensorOut = Core.Tensor(Rout, Dout);
   type t;
   [@bs.send]
   external apply : (t, SymbolicTensorIn.t) => SymbolicTensorOut.t = "";
@@ -443,8 +449,8 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
   type stackedRnnCellsConfig = {cells: array(RnnCell(R)(R)(D).t)};
 };
 
-module Activations = (R: Core.Rank, D: Core.DataType) => {
-  module Layer = Layer(R, R, D);
+module Activations = (R: Core.Rank, Din: Core.DataType, Dout: Core.DataType) => {
+  module Layer = Layer(R, R, Din, Dout);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external elu : unit => Layer.t = "";
   [@bs.deriving abstract]
@@ -472,12 +478,18 @@ module Activations = (R: Core.Rank, D: Core.DataType) => {
     "thresohldedReLU";
 };
 
-module Basic = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
-  module EmbeddingLayer = Layer(Core.Rank1, Core.Rank2, D);
-  module FlattenLayer = Layer(Rin, Core.Rank1, D);
-  module Layer = Layer(Rin, Rout, D);
-  module Initializer = Initializers.Initializer(Rin, D);
-  module Configs = Configs(Rin, D);
+module Basic =
+       (
+         Rin: Core.Rank,
+         Rout: Core.Rank,
+         Din: Core.DataType,
+         Dout: Core.DataType,
+       ) => {
+  module EmbeddingLayer = Layer(Core.Rank1, Core.Rank2, Din, Dout);
+  module FlattenLayer = Layer(Rin, Core.Rank1, Din, Dout);
+  module Layer = Layer(Rin, Rout, Din, Dout);
+  module Initializer = Initializers.Initializer(Rin, Din);
+  module Configs = Configs(Rin, Din);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external activation : Configs.activationConfig => Layer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
@@ -495,8 +507,8 @@ module Basic = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
 };
 
 module Convolutional = (D: Core.DataType) => {
-  module Conv1dLayer = Layer(Core.Rank3, Core.Rank3, D);
-  module Conv2dLayer = Layer(Core.Rank4, Core.Rank4, D);
+  module Conv1dLayer = Layer(Core.Rank3, Core.Rank3, D, D);
+  module Conv2dLayer = Layer(Core.Rank4, Core.Rank4, D, D);
   module Conv1dInitializer = Initializers.Initializer(Core.Rank3, D);
   module Conv2dInitializer = Initializers.Initializer(Core.Rank4, D);
   type kernelSizeFfi;
@@ -922,7 +934,7 @@ module Convolutional = (D: Core.DataType) => {
 };
 
 module Merge = (R: Core.Rank, D: Core.DataType) => {
-  module Layer = Layer(R, R, D);
+  module Layer = Layer(R, R, D, D);
   module Configs = Configs(R, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external add : unit => Layer.t = "";
@@ -957,7 +969,7 @@ module Merge = (R: Core.Rank, D: Core.DataType) => {
 };
 
 module Normalization = (R: Core.Rank, D: Core.DataType) => {
-  module Layer = Layer(R, R, D);
+  module Layer = Layer(R, R, D, D);
   module Configs = Configs(R, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external batchNormalization : unit => Layer.t = "";
@@ -967,9 +979,9 @@ module Normalization = (R: Core.Rank, D: Core.DataType) => {
 };
 
 module Pooling = (D: Core.DataType) => {
-  module Conv1dLayer = Layer(Core.Rank3, Core.Rank3, D);
-  module Conv1dDownRankLayer = Layer(Core.Rank3, Core.Rank2, D);
-  module Conv2dLayer = Layer(Core.Rank4, Core.Rank4, D);
+  module Conv1dLayer = Layer(Core.Rank3, Core.Rank3, D, D);
+  module Conv1dDownRankLayer = Layer(Core.Rank3, Core.Rank2, D, D);
+  module Conv2dLayer = Layer(Core.Rank4, Core.Rank4, D, D);
   module Configs1dLayer = Configs(Core.Rank3, D);
   module Configs2dLayer = Configs(Core.Rank4, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
@@ -1028,7 +1040,7 @@ module Pooling = (D: Core.DataType) => {
 };
 
 module Recurrent = (D: Core.DataType) => {
-  module Rnn2dLayer = Layer(Core.Rank2, Core.Rank2, D);
+  module Rnn2dLayer = Layer(Core.Rank2, Core.Rank2, D, D);
   module RnnCell = RnnCell(Core.Rank1, Core.Rank1, D);
   module Configs2dLayer = Configs(Core.Rank2, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
