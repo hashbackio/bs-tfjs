@@ -57,9 +57,10 @@ module RnnCell = (Rin: Core.Rank, Rout: Core.Rank, D: Core.DataType) => {
     "apply";
 };
 
-module Configs = (R: Core.Rank, D: Core.DataType) => {
-  module Initializer = Initializers.Initializer(R, D);
-  module Tensor = Core.Tensor(R, D);
+module Configs = (R: Core.Rank, Din: Core.DataType, Dout: Core.DataType) => {
+  module Initializer = Initializers.Initializer(R, Din);
+  module TensorIn = Core.Tensor(R, Din);
+  module TensorOut = Core.Tensor(R, Dout);
   [@bs.deriving abstract]
   type inputConfig = {
     [@bs.optional]
@@ -105,7 +106,7 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
     [@bs.optional]
     trainable: bool,
     [@bs.optional]
-    weights: array(Tensor.t),
+    weights: array(TensorIn.t),
   };
   [@bs.deriving abstract]
   type dropoutConfig = {
@@ -136,7 +137,7 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
     [@bs.optional]
     trainable: bool,
     [@bs.optional]
-    weights: array(Tensor.t),
+    weights: array(TensorOut.t),
   };
   [@bs.deriving abstract]
   type repeatVectorConfig = {n: int};
@@ -183,7 +184,7 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
   [@bs.deriving abstract]
   type rnnConfig = {
     [@bs.optional]
-    cell: array(RnnCell(R)(R)(D).t),
+    cell: array(RnnCell(R)(R)(Din).t),
     [@bs.optional]
     returnSequences: bool,
     [@bs.optional]
@@ -202,7 +203,7 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
   [@bs.deriving abstract]
   type simpleRNNConfig = {
     [@bs.optional]
-    cell: array(RnnCell(R)(R)(D).t),
+    cell: array(RnnCell(R)(R)(Din).t),
     [@bs.optional]
     returnSequences: bool,
     [@bs.optional]
@@ -248,7 +249,7 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
   [@bs.deriving abstract]
   type gruConfig = {
     [@bs.optional]
-    cell: array(RnnCell(R)(R)(D).t),
+    cell: array(RnnCell(R)(R)(Din).t),
     [@bs.optional]
     returnSequences: bool,
     [@bs.optional]
@@ -296,7 +297,7 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
   [@bs.deriving abstract]
   type gruCellConfig = {
     [@bs.optional]
-    cell: array(RnnCell(R)(R)(D).t),
+    cell: array(RnnCell(R)(R)(Din).t),
     [@bs.optional]
     returnSequences: bool,
     [@bs.optional]
@@ -346,7 +347,7 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
   [@bs.deriving abstract]
   type lstmConfig = {
     [@bs.optional]
-    cell: array(RnnCell(R)(R)(D).t),
+    cell: array(RnnCell(R)(R)(Din).t),
     [@bs.optional]
     returnSequences: bool,
     [@bs.optional]
@@ -396,7 +397,7 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
   [@bs.deriving abstract]
   type lstmCellConfig = {
     [@bs.optional]
-    cell: array(RnnCell(R)(R)(D).t),
+    cell: array(RnnCell(R)(R)(Din).t),
     [@bs.optional]
     returnSequences: bool,
     [@bs.optional]
@@ -446,7 +447,7 @@ module Configs = (R: Core.Rank, D: Core.DataType) => {
     unitForgetBias: bool,
   };
   [@bs.deriving abstract]
-  type stackedRnnCellsConfig = {cells: array(RnnCell(R)(R)(D).t)};
+  type stackedRnnCellsConfig = {cells: array(RnnCell(R)(R)(Din).t)};
 };
 
 module Activations = (R: Core.Rank, Din: Core.DataType, Dout: Core.DataType) => {
@@ -489,7 +490,7 @@ module Basic =
   module FlattenLayer = Layer(Rin, Core.Rank1, Din, Dout);
   module Layer = Layer(Rin, Rout, Din, Dout);
   module Initializer = Initializers.Initializer(Rin, Din);
-  module Configs = Configs(Rin, Din);
+  module Configs = Configs(Rin, Din, Dout);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external activation : Configs.activationConfig => Layer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
@@ -935,7 +936,7 @@ module Convolutional = (D: Core.DataType) => {
 
 module Merge = (R: Core.Rank, D: Core.DataType) => {
   module Layer = Layer(R, R, D, D);
-  module Configs = Configs(R, D);
+  module Configs = Configs(R, D, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external add : unit => Layer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
@@ -970,7 +971,7 @@ module Merge = (R: Core.Rank, D: Core.DataType) => {
 
 module Normalization = (R: Core.Rank, D: Core.DataType) => {
   module Layer = Layer(R, R, D, D);
-  module Configs = Configs(R, D);
+  module Configs = Configs(R, D, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external batchNormalization : unit => Layer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
@@ -982,8 +983,8 @@ module Pooling = (D: Core.DataType) => {
   module Conv1dLayer = Layer(Core.Rank3, Core.Rank3, D, D);
   module Conv1dDownRankLayer = Layer(Core.Rank3, Core.Rank2, D, D);
   module Conv2dLayer = Layer(Core.Rank4, Core.Rank4, D, D);
-  module Configs1dLayer = Configs(Core.Rank3, D);
-  module Configs2dLayer = Configs(Core.Rank4, D);
+  module Configs1dLayer = Configs(Core.Rank3, D, D);
+  module Configs2dLayer = Configs(Core.Rank4, D, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external averagePooling1d : unit => Conv1dLayer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
@@ -1042,7 +1043,7 @@ module Pooling = (D: Core.DataType) => {
 module Recurrent = (D: Core.DataType) => {
   module Rnn2dLayer = Layer(Core.Rank2, Core.Rank2, D, D);
   module RnnCell = RnnCell(Core.Rank1, Core.Rank1, D);
-  module Configs2dLayer = Configs(Core.Rank2, D);
+  module Configs2dLayer = Configs(Core.Rank2, D, D);
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
   external gru : Configs2dLayer.gruConfig => Rnn2dLayer.t = "";
   [@bs.module "@tensorflow/tfjs"] [@bs.scope "layers"]
@@ -1066,9 +1067,9 @@ module Inputs = (D: Core.DataType) => {
   module Input1dTensor = Models.SymbolicTensor(Core.Rank1, D);
   module Input2dTensor = Models.SymbolicTensor(Core.Rank2, D);
   module Input3dTensor = Models.SymbolicTensor(Core.Rank3, D);
-  module Configs1d = Configs(Core.Rank1, D);
-  module Configs2d = Configs(Core.Rank2, D);
-  module Configs3d = Configs(Core.Rank3, D);
+  module Configs1d = Configs(Core.Rank1, D, D);
+  module Configs2d = Configs(Core.Rank2, D, D);
+  module Configs3d = Configs(Core.Rank3, D, D);
   [@bs.module "@tensorflow/tfjs"]
   external input1d : unit => Input1dTensor.t = "input";
   [@bs.module "@tensorflow/tfjs"]
