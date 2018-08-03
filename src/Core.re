@@ -438,7 +438,9 @@ module rec Tensor:
     type primitiveDataType = D.t;
     module Create = {
       [@bs.module "@tensorflow/tfjs"]
-      external tensor : (typedArray, R.shape) => t = "";
+      external tensor : (typedArray, R.shape, string) => t = "";
+      let tensor = (typedArray, shape) =>
+        tensor(typedArray, shape, D.dType |> dTypeToJs);
       [@bs.module "@tensorflow/tfjs"] external clone : t => t = "";
       [@bs.module "@tensorflow/tfjs"]
       external fill : (array(int), D.t, string) => t = "";
