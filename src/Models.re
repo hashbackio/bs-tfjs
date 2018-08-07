@@ -134,6 +134,8 @@ module Model =
   external predictOnBatch : (compiledModel, array(TensorIn.t)) => TensorOut.t =
     "";
   [@bs.send]
+  external save : (compiledModel, string) => Js.Promise.t(unit) = "";
+  [@bs.send]
   external fit :
     (compiledModel, TensorIn.t, TensorOut.t, Configs.fitConfig) =>
     Js.Promise.t(unit) =
