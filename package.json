@@ -22,7 +22,8 @@
   ],
   "name": "bs-tfjs",
   "peerDependencies": {
-    "@tensorflow/tfjs": "0.12.x"
+    "@tensorflow/tfjs": "0.12.x",
+    "@tensorflow/tfjs-node": "0.1.x"
   },
   "repository": "hashbackio/bs-tfjs",
   "scripts": {
